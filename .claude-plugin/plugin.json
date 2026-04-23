@@ -1,0 +1,30 @@
+{
+  "name": "agentkey",
+  "version": "1.0.0",
+  "description": "AgentKey \u2014 unified API for real-time external data: web search, social media (Twitter, Reddit, \u5c0f\u7ea2\u4e66, Instagram, \u77e5\u4e4e, TikTok, \u6296\u97f3, B\u7ad9, \u5fae\u535a, Threads, YouTube, LinkedIn), crypto/blockchain data, and web scraping",
+  "author": {
+    "name": "Chainbase Labs",
+    "url": "https://agentkey.app"
+  },
+  "repository": "https://github.com/chainbase-labs/agentkey",
+  "license": "MIT",
+  "keywords": [
+    "agentkey",
+    "web-search",
+    "social-media",
+    "crypto",
+    "blockchain",
+    "real-time-data",
+    "scraping"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "userConfig": {
+    "AGENTKEY_API_KEY": {
+      "title": "AgentKey API Key",
+      "description": "Your AgentKey API key. Get one free at https://console.agentkey.app/",
+      "type": "string",
+      "sensitive": true
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "agentkey": {
+      "command": "npx",
+      "args": ["-y", "@agentkey/mcp"],
+      "env": { "AGENTKEY_API_KEY": "old" }
+    }
+  }
+}

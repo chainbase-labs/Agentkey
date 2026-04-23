@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/chainbase-labs/agentkey/security/policy
+    about: Do not open a public issue. Email support@chainbase.com.
+  - name: Question or discussion
+    url: https://github.com/chainbase-labs/agentkey/discussions
+    about: Use Discussions for questions, ideas, and show-and-tell.

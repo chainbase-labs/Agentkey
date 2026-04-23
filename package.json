@@ -1,0 +1,23 @@
+{
+  "name": "agentkey-skill",
+  "private": true,
+  "description": "AgentKey skills for AI agents - real-time web search, social media, and crypto data access",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chainbase-labs/agentkey.git"
+  },
+  "homepage": "https://agentkey.app",
+  "keywords": [
+    "ai-agents",
+    "claude-code",
+    "cursor",
+    "codex",
+    "skills",
+    "agent-skills",
+    "web-search",
+    "social-media",
+    "crypto",
+    "real-time-data"
+  ],
+  "skills": ["agentkey"]
+}

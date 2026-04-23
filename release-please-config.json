@@ -1,0 +1,24 @@
+{
+  "packages": {
+    ".": {
+      "package-name": "agentkey-skill",
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": false,
+      "bump-patch-for-minor-pre-major": false,
+      "include-v-in-tag": true,
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "version"
+        },
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  },
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+}

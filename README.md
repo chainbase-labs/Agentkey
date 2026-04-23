@@ -1,0 +1,327 @@
+<p align="center">
+<img width="256" alt="AgentKey" src="https://github.com/user-attachments/assets/4c7c78a9-e5d8-45ce-9372-d5bffe8f61c5" />
+</p>
+
+<p align="center">
+  <strong>One command. Full internet access for your AI agent.</strong>
+  <br>
+  Browse Twitter, search LinkedIn, scrape social media, read any webpage. Zero config. Just install and go.
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#what-your-agent-can-now-do">Platforms</a> ·
+  <a href="#pricing">Pricing</a> ·
+  <a href="#faq">FAQ</a> ·
+  <a href="docs/README_zh.md">中文</a>
+</p>
+
+<p align="center">
+  <a href="https://agentkey.app"><img src="https://img.shields.io/badge/Website-agentkey.app-blue?style=for-the-badge" alt="Website" /></a>
+</p>
+
+---
+
+**Install AgentKey. Give your AI superpowers.**
+
+AgentKey is the master key for the agent ecosystem. When using Claude, Manus, or other agents, you often need external data: social media, e-commerce, on-chain data, various APIs. That means hunting down API keys, managing subscriptions, or hitting dead ends.
+
+With AgentKey installed, your agent gains all these data capabilities automatically. No subscriptions, no extra registrations. Top up and go.
+
+> ⭐ Star this repo to get notified whenever we add new platform support or release updates.
+
+---
+
+## Use Cases
+
+| You ask your agent to...                               | Without AgentKey              | With AgentKey                                  |
+| ------------------------------------------------------ | ----------------------------- | ---------------------------------------------- |
+| 🐦 What has Musk been saying on Twitter lately?        | Can't access, tweets blocked  | Pulls all relevant tweets and summarizes them  |
+| 📕 What do people think of this product on Instagram / Xiaohongshu? | Blocked, login required | Scrapes real posts, organizes by sentiment  |
+| 📺 What does this YouTube / Bilibili video cover?      | Can't read, no subtitles      | Reads the video/transcript, extracts key points |
+| 📖 Find Reddit threads about this pain point           | 403 blocked                   | Finds relevant threads and extracts solutions  |
+| 👔 Check this competitor / candidate's LinkedIn        | 403, access issues            | Opens the page, summarizes key info            |
+| 🎵 What's trending on Douyin / TikTok right now?       | Can't scrape the hot list     | Pulls trending topics and tags                 |
+| 🌐 What does this webpage say?                         | Returns a wall of raw HTML    | Extracts the content, explains it clearly      |
+| 📦 What does this GitHub repo do?                      | Have to click through yourself | Reads README & Issues, one-line summary       |
+| 🧾 What has this wallet / fund been buying lately?     | Click through a block explorer | Summarizes recent transactions and positions  |
+
+Before AgentKey: 10 tasks → 10 API keys → 10 separate bills.
+
+Your agent is half-capable at best, constantly needing human help to find data, juggling credentials, drowning in complexity.
+
+Now: one AgentKey handles everything. **AgentKey unifies all the external access your AI needs to do real work.**
+
+---
+
+## Install
+
+One command. A browser tab opens for login, then you're done.
+
+**macOS / Linux**
+```bash
+curl -fsSL https://agentkey.app/install.sh | bash
+```
+
+**Windows** (PowerShell)
+```powershell
+irm https://agentkey.app/install.ps1 | iex
+```
+
+Restart your agent, then ask it something that needs the internet:
+
+> *"What has Musk been tweeting about lately?"*
+
+That's it. No API key to copy, no JSON to edit. The installer auto-detects every agent on your machine ([40+ supported](https://github.com/vercel-labs/skills#available-agents)) and configures each one.
+
+<sub>Need to target specific agents, run in CI, or configure an agent we don't auto-cover? → [Advanced install](#advanced-install).</sub>
+
+---
+
+## What your agent can now do
+
+AgentKey maintains cloud-side integrations with each platform — no extra accounts, no extra keys.
+
+| Category | Services |
+| :--- | :--- |
+| **Search** | <img src="https://cdn.simpleicons.org/brave/FF2000" width="16" height="16" alt="" /> Brave · <img src="https://cdn.simpleicons.org/perplexity/20B8CD" width="16" height="16" alt="" /> Perplexity · Tavily · Serper |
+| **Scrape** | Firecrawl · Jina Reader · ScrapeNinja |
+| **On-chain / Crypto** | Chainbase · <img src="https://cdn.simpleicons.org/coinmarketcap/17181B" width="16" height="16" alt="" /> CoinMarketCap · Dexscreener |
+| **Social & Content** | <img src="https://cdn.simpleicons.org/bilibili/00A1D6" width="16" height="16" alt="" /> Bilibili · <img src="https://cdn.simpleicons.org/tiktok/000000" width="16" height="16" alt="" /> Douyin · <img src="https://cdn.simpleicons.org/instagram/E4405F" width="16" height="16" alt="" /> Instagram · <img src="https://cdn.simpleicons.org/kuaishou/FF4900" width="16" height="16" alt="" /> Kuaishou · Lemon8 · LinkedIn · <br><img src="https://cdn.simpleicons.org/reddit/FF4500" width="16" height="16" alt="" /> Reddit · <img src="https://cdn.simpleicons.org/x/000000" width="16" height="16" alt="" /> Twitter (X) · <img src="https://cdn.simpleicons.org/sinaweibo/E6162D" width="16" height="16" alt="" /> Weibo · <img src="https://cdn.simpleicons.org/wechat/07C160" width="16" height="16" alt="" /> Weixin · <img src="https://cdn.simpleicons.org/xiaohongshu/FF2442" width="16" height="16" alt="" /> Xiaohongshu (maintenance) · <img src="https://cdn.simpleicons.org/youtube/FF0000" width="16" height="16" alt="" /> YouTube · <img src="https://cdn.simpleicons.org/zhihu/0084FF" width="16" height="16" alt="" /> Zhihu |
+
+**Planned:** Financial data · E-commerce · Maps & Weather
+
+---
+
+## Pricing
+
+**No monthly fee. Pay only for what you use.** Top up any amount, spend by credit:
+
+| What you ask your agent to do | Approx. cost |
+|-------------------------------|--------------|
+| Web search | $0.001 |
+| Crypto / token lookup | $0.003 |
+| Social media read | $0.006 |
+| Daily scheduled task | ~$5–10 / month |
+
+---
+
+## FAQ
+
+**I'm not technical. Can I still use this?**
+Yes. Open Terminal (macOS / Linux) or PowerShell (Windows), paste the one-line install command from [Install](#install), and press Enter. A browser tab will open — click approve, then restart your agent. You're done.
+
+**Is it safe?**
+AgentKey is a request gateway. By design, it does not store your full conversation content. We proxy data requests from your agent to third-party platforms and return the results to your environment. Minimal logs may exist for billing, abuse prevention, and debugging; see the privacy policy for details.
+
+**How is this different from Claude / ChatGPT's built-in web access?**
+Native web access in Claude and ChatGPT has limited platform coverage. It often can't reach Twitter, Xiaohongshu, on-chain data, etc. AgentKey fills those gaps.
+
+**What if I run out of credits?**
+Just top up. No auto-renewal, no hidden charges.
+
+**Which agents are supported?**
+Any agent that the Skills CLI supports — see the [full list](https://github.com/vercel-labs/skills#available-agents). If your agent isn't on the list but can load MCP servers, run `npx -y @agentkey/mcp --auth-login` and restart it.
+
+**Something's not working — how do I check?**
+Inside your agent, try `/agentkey status` — it diagnoses your MCP config, version, and optional connectivity.
+
+**What stage is the product at?**
+Early access. There are rough edges and we appreciate your patience. Feature requests and bug reports are welcome via [GitHub Issues](https://github.com/chainbase-labs/agentkey/issues) or Telegram below.
+
+---
+
+## Community
+
+- **Telegram:** [t.me/agentkey33](https://t.me/agentkey33) — general questions, support, feature requests
+- **Bug reports:** [GitHub Issues](https://github.com/chainbase-labs/agentkey/issues)
+- **Release announcements:** ⭐ star this repo to get notified
+
+[![Star History Chart](https://api.star-history.com/svg?repos=chainbase-labs/agentkey&type=Date)](https://www.star-history.com/?repos=chainbase-labs%2Fagentkey&type=date&legend=top-left)
+
+---
+
+<br>
+
+<details>
+<summary><b>Advanced install</b> — flags, specific agents, manual two-step, and agents we don't auto-configure</summary>
+
+### Installer flags
+
+```bash
+# Non-interactive (CI / unattended): install to every detected agent, no prompts
+curl -fsSL https://agentkey.app/install.sh | bash -s -- --yes
+
+# Only install the skill for specific agents
+curl -fsSL https://agentkey.app/install.sh | bash -s -- --only claude-code,cursor
+
+# Only the skill, or only the MCP auth
+curl -fsSL https://agentkey.app/install.sh | bash -s -- --skip-mcp
+curl -fsSL https://agentkey.app/install.sh | bash -s -- --skip-skill
+```
+
+PowerShell equivalents: `-Yes`, `-Only`, `-SkipMcp`, `-SkipSkill`.
+
+### Manual two-step install
+
+If you'd rather run the two underlying commands yourself (or the one-line installer can't reach your machine):
+
+```bash
+# 1. Install the skill into every detected agent
+npx skills add chainbase-labs/agentkey
+
+# 2. Authenticate and register the MCP server
+npx -y @agentkey/mcp --auth-login
+```
+
+Over SSH or any shell where a browser can't open, use `npx -y @agentkey/mcp --setup` — an interactive wizard asks for the key and lets you pick which MCP clients to write to.
+
+### Agents `--auth-login` doesn't auto-configure
+
+MCP auto-configuration covers Claude Code, Claude Desktop, and Cursor. For **Codex / OpenCode / Gemini CLI / Hermes / Manus** (or Linux Claude Desktop), the skill is still installed automatically, but you'll need to paste this MCP snippet into the agent's own config (path varies per agent):
+
+```json
+{
+  "mcpServers": {
+    "agentkey": {
+      "command": "npx",
+      "args": ["-y", "@agentkey/mcp"],
+      "env": { "AGENTKEY_API_KEY": "ak_..." }
+    }
+  }
+}
+```
+
+Then restart the agent. Inside the skill, the activation step will also walk you through this on first use.
+
+### Slash commands inside your agent
+
+| Command | What it does |
+|---------|--------------|
+| `/agentkey` | Auto-triggered during data queries — you usually don't call it manually |
+| `/agentkey setup` | First-time setup: configure API key + verify MCP connectivity |
+| `/agentkey status` | Diagnose current config (MCP, version, connectivity test) |
+
+</details>
+
+<details>
+<summary><b>Update</b> — refresh the skill or pin a version</summary>
+
+```bash
+# Latest skill content
+npx skills update chainbase-labs/agentkey
+
+# Pin a specific version
+npx skills add chainbase-labs/agentkey@v1.0.0
+```
+
+Restart the agent to pick it up.
+
+**MCP server:** no action required. Your MCP config uses `npx -y @agentkey/mcp`, so it re-resolves to the latest published version every time the agent restarts. Re-run `npx -y @agentkey/mcp --auth-login` only to rotate the API key.
+
+When Claude Code detects a newer AgentKey release at runtime (plugin install), it will also attempt a silent in-place update and notify you:
+
+```
+Claude: AgentKey Skill updated to v0.4.5.
+```
+
+</details>
+
+<details>
+<summary><b>Uninstall</b> — one command, cleans every agent and config file</summary>
+
+**macOS / Linux**
+```bash
+curl -fsSL https://agentkey.app/uninstall.sh | bash
+```
+
+**Windows** (PowerShell)
+```powershell
+irm https://agentkey.app/uninstall.ps1 | iex
+```
+
+Removes the skill from every agent, strips the `agentkey` MCP entry + API key from all MCP client configs, and clears caches/logs. Pass `--keep-marketplace` (bash) / `-KeepMarketplace` (PowerShell) to retain the Claude Code plugin marketplace entry.
+
+<details>
+<summary>Manual two-step uninstall</summary>
+
+```bash
+# 1. Remove the skill from every agent
+npx skills remove chainbase-labs/agentkey
+
+# 2. Delete the "agentkey" entry under mcpServers in each MCP client config:
+#    - Claude Code:     ~/.claude.json
+#    - Claude Desktop:  ~/Library/Application Support/Claude/claude_desktop_config.json  (macOS)
+#                       %APPDATA%\Claude\claude_desktop_config.json                      (Windows)
+#    - Cursor:          ~/.cursor/mcp.json
+```
+
+The one-command uninstaller additionally cleans npm/npx caches, legacy shell rc entries, CLAUDE.md sections, and MCP stdio logs — use that if you want a fully clean slate.
+
+</details>
+
+</details>
+
+<details>
+<summary><b>Development / Self-hosted</b> — run against a local checkout, test plugin mode, release</summary>
+
+### Install from a local checkout
+
+```bash
+git clone https://github.com/chainbase-labs/agentkey.git
+cd agentkey
+
+# 1. Install your working tree into every detected agent
+npx skills add .
+
+# 2. Register the MCP server (if you haven't already)
+npx -y @agentkey/mcp --auth-login
+```
+
+`npx skills add .` accepts a local path (or a `file://` URL) and is the fastest way to iterate on `skills/agentkey/SKILL.md` — run it again after each edit. The MCP step only needs to run once per machine.
+
+**Iterating on the MCP server itself?** Point the agentkey repo at a local `@agentkey/mcp` build instead of the npm package by editing the MCP config to use `node /path/to/AgentKey-Server/mcp-server/dist/index.js` as the `command`, then `pnpm --filter @agentkey/mcp build` in the server repo between iterations.
+
+### Claude Code plugin mode
+
+This repo also ships as a Claude Code plugin (see `.claude-plugin/plugin.json` and `.mcp.json`). If you need to test the plugin-specific install path — plugin marketplace, `userConfig`, MCP auto-registration via `.mcp.json` — add the repo as a local marketplace:
+
+```bash
+claude plugin marketplace add /absolute/path/to/agentkey
+claude plugin install agentkey
+```
+
+After editing files, reload with `claude plugin update agentkey`.
+
+Use the skills-CLI path for day-to-day skill edits; use the plugin path only when you need to test Claude Code plugin internals (e.g. MCP env-var wiring through `CLAUDE_PLUGIN_OPTION_*`).
+
+### Repo layout
+
+```
+agentkey/
+├── .claude-plugin/plugin.json   # Claude Code plugin manifest
+├── .mcp.json                    # Used when installed as a plugin
+├── skills/agentkey/
+│   ├── SKILL.md                 # Decision tree + routing rules
+│   └── scripts/                 # check-mcp / check-update helpers
+├── scripts/
+│   ├── install.sh               # One-command installer (mac/linux) — hosted at agentkey.app/install.sh
+│   ├── install.ps1              # Windows PowerShell installer
+│   ├── uninstall.sh             # One-command uninstaller (mac/linux)
+│   ├── uninstall.ps1            # Windows PowerShell uninstaller
+│   └── release.sh               # Maintainer release tool
+├── archive/                     # Retired installers & CLI (kept for history)
+└── version                      # Managed by release.sh only
+```
+
+### Release a new version (maintainers)
+
+```bash
+./scripts/release.sh patch "Bug fix description"
+./scripts/release.sh minor "New feature description"
+./scripts/release.sh major "Breaking change description"
+```
+
+Requires `gh` CLI to be logged in. Auto-bumps `version`, commits, tags, pushes, and creates the GitHub Release.
+
+</details>

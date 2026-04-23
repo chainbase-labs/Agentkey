@@ -1,0 +1,21 @@
+.env
+config.yaml
+*.exe
+/bin/
+/dist/
+vendor/
+.DS_Store
+*.skill
+*.zip
+mcp-server/node_modules/
+mcp-server/dist/
+.vincent/
+.gstack/
+node_modules/
+cli/dist/
+cli/.vitest/
+*.log
+
+# Claude Code workflow artifacts (internal, not shipped publicly)
+docs/superpowers/
+RELEASE_NOTES.md
