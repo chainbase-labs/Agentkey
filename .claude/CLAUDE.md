@@ -26,11 +26,8 @@ agentkey/
 │   └── scripts/                 # check-mcp / check-update helpers
 ├── scripts/
 │   └── uninstall.sh             # End-user cleanup helper
-├── archive/                     # Retired installers + CLI (incl. old release.sh), kept for history, not shipped
-└── version                      # Managed by release-please only
+└── version.txt                  # Managed by release-please only
 ```
-
-`archive/` holds the old per-agent installers (OpenClaw bash installer, the custom `@agentkey-cli/cli`, inject.sh, setup-key.sh) plus the retired pnpm workspace files. They are no longer referenced from the public docs; do not resurrect them without a plan.
 
 ## Key Commands
 
@@ -72,7 +69,7 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 **Changes to install/uninstall docs:**
 - Update both `README.md` and `docs/README_zh.md` together — they mirror each other
 - The canonical install is always the two-command sequence (`npx skills add …` + `npx -y @agentkey/mcp --auth-login`). Don't imply either command does both.
-- Do **not** re-add OpenClaw / per-agent installers without a new design — they live in `archive/`
+- Do **not** re-add OpenClaw / per-agent installers without a new design — historical context is in git history (removed in chore/remove-archive-directory)
 
 ## Architecture Constraints
 
