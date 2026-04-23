@@ -299,21 +299,11 @@ agentkey/
 │   ├── install.sh               # One-command installer (mac/linux)
 │   ├── install.ps1              # Windows PowerShell installer
 │   ├── uninstall.sh             # One-command uninstaller (mac/linux)
-│   ├── uninstall.ps1            # Windows PowerShell uninstaller
-│   └── release.sh               # Maintainer release tool
-├── archive/                     # Retired installers & CLI
-└── version                      # Managed by release.sh only
+│   └── uninstall.ps1            # Windows PowerShell uninstaller
+└── version.txt                  # Managed by release-please
 ```
 
-**Release a new version (maintainers):**
-
-```bash
-./scripts/release.sh patch "Bug fix description"
-./scripts/release.sh minor "New feature description"
-./scripts/release.sh major "Breaking change description"
-```
-
-Requires `gh` CLI to be logged in. Auto-bumps `version`, commits, tags, pushes, and creates the GitHub Release.
+**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `version.txt`, `plugin.json`, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
 
 </details>
 

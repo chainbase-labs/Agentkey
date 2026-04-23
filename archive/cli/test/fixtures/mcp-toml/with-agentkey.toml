@@ -1,6 +1,0 @@
-[mcp_servers.agentkey]
-command = "npx"
-args = ["-y", "@agentkey/mcp"]
-
-[mcp_servers.agentkey.env]
-AGENTKEY_API_KEY = "old"

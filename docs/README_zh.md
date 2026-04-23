@@ -299,21 +299,11 @@ agentkey/
 │   ├── install.sh               # 一键安装脚本（mac/linux）
 │   ├── install.ps1              # Windows PowerShell 安装脚本
 │   ├── uninstall.sh             # 一键卸载脚本（mac/linux）
-│   ├── uninstall.ps1            # Windows PowerShell 卸载脚本
-│   └── release.sh               # 发版工具
-├── archive/                     # 已退役的安装器与 CLI
-└── version                      # 只由 release.sh 维护
+│   └── uninstall.ps1            # Windows PowerShell 卸载脚本
+└── version.txt                  # 由 release-please 自动维护
 ```
 
-**发布新版本（Maintainer）：**
-
-```bash
-./scripts/release.sh patch "Bug fix description"
-./scripts/release.sh minor "New feature description"
-./scripts/release.sh major "Breaking change description"
-```
-
-需要 `gh` CLI 已登录。脚本会自动 bump `version`、提交、打 tag、推送并创建 GitHub Release。
+**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `version.txt`、`plugin.json`、`CHANGELOG.md`。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
 
 </details>
 
