@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/chainbase-labs/agentkey/compare/agentkey-skill-v1.0.0...agentkey-skill-v1.1.0) (2026-04-23)
+
+
+### Features
+
+* cache update check result for 24h ([#5](https://github.com/chainbase-labs/agentkey/issues/5)) ([27e0ebe](https://github.com/chainbase-labs/agentkey/commit/27e0ebe20e3af26667ff852a318b2f8439964372))
+
 ## [1.0.0] - 2026-04-22
 
 Initial public release.
