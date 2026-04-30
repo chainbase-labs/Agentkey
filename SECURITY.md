@@ -25,3 +25,50 @@ Pre-1.0 releases are no longer maintained. Please upgrade to the latest 1.x rele
 ## Disclosure
 
 We follow coordinated disclosure. Once a fix is available, we publish a security advisory via GitHub Security Advisories and credit the reporter (with permission).
+
+## Security Posture
+
+### What this skill does on your machine
+
+The skill ships two helper scripts that the agent invokes:
+
+- **`skills/agentkey/scripts/check-update.sh`** — at most every 24 hours, calls `https://api.github.com/repos/chainbase-labs/agentkey/releases/latest` to learn the latest version. When the local version differs and the skill lives inside a git working tree (`.git/` present), the script shallow-fetches the new release tag and checks it out in place; otherwise it prints `UPDATE_FAILED: …` and the user updates manually. The release tag is only ever moved by [release-please](https://github.com/googleapis/release-please) from `main`, so the auto-applied artifact is always traceable to a merged PR.
+- **`skills/agentkey/scripts/check-mcp.sh`** — reads `~/.claude.json` and `~/.env.local` to verify the AgentKey MCP server is registered and the API key is present. **Read-only**; no network egress; output is a single status code.
+
+### Files the skill reads or writes
+
+| Path | Mode | Purpose |
+|---|---|---|
+| `~/.claude.json` | read | Detect MCP registration; read `AGENTKEY_API_KEY` env value |
+| `~/.env.local` | read | Fallback location for `AGENTKEY_API_KEY` |
+| `${TMPDIR}/agentkey-update-check` | read/write | Cache for the update check |
+| `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) / `%APPDATA%/Claude/...` (Windows) | written by the separate `npx -y @agentkey/mcp --auth-login` command, **not** by the skill | MCP registration |
+| `~/.cursor/mcp.json` | written by `--auth-login`, **not** by the skill | MCP registration |
+
+### Network egress from the skill
+
+| Destination | When | Why |
+|---|---|---|
+| `api.github.com` | At most every 24 hours | Look up the latest release tag |
+| npm registry | When the user first runs `npx -y @agentkey/mcp` | Resolve and run the MCP server |
+
+### Credential handling
+
+- `AGENTKEY_API_KEY` is stored only in user-local config files (paths above).
+- The key leaves the user's machine only as the `Authorization` header to AgentKey's own API endpoints.
+- The skill collects no telemetry.
+
+### Supply chain
+
+- Releases are cut by [release-please](https://github.com/googleapis/release-please) from merged Conventional-Commit PRs on `main` — no manual artifact uploads, no manual tag pushes.
+- The companion `@agentkey/mcp` npm package is published from the same organization. Users invoke it via `npx -y @agentkey/mcp`, which resolves to the latest published version at runtime — this is the same threat model as any other `npx`-launched CLI.
+- Future work: SLSA provenance attestation via GitHub OIDC + sigstore; signed npm provenance.
+
+## Scanner false-positive notes
+
+Automated scanners (VirusTotal, ClawScan) may flag this skill as `Suspicious` due to two intentional patterns. We document them here so reviewers can verify intent:
+
+1. **`check-update.sh` contacts GitHub and self-applies a release tag.** Pattern matches "remote-controlled binary update" heuristics. **Why this is intentional:** the script only fast-forwards to a tag on `chainbase-labs/agentkey`, and that tag is only ever set by release-please from a merged PR on `main`. The auto-update preserves UX parity with `npx`-resolved CLIs (which also re-resolve at runtime), and the script source — including the exact `git fetch` + `git checkout` invocation — is auditable in this repository.
+2. **`check-mcp.sh` reads `*API_KEY*` env values.** Pattern matches "credential harvesting" heuristics. **Why this is intentional:** the read is local-only, never transmitted, and exists purely to confirm `AGENTKEY_API_KEY` is configured before the agent attempts an MCP call. The script's only output is a one-word status code (`MCP_OK` / `MCP_NO_KEY` / `MCP_NOT_CONFIGURED`); the key value itself is discarded.
+
+If you operate a scanner and need additional context to triage, please email `support@chainbase.com`.
