@@ -38,7 +38,7 @@ With AgentKey installed, your agent gains all these data capabilities automatica
 | You ask your agent to...                               | Without AgentKey              | With AgentKey                                  |
 | ------------------------------------------------------ | ----------------------------- | ---------------------------------------------- |
 | 🐦 What has Musk been saying on Twitter lately?        | Can't access, tweets blocked  | Pulls all relevant tweets and summarizes them  |
-| 📕 What do people think of this product on Instagram / Xiaohongshu? | Blocked, login required | Scrapes real posts, organizes by sentiment  |
+| 📕 What do people think of this product on Instagram?  | Blocked, login required       | Scrapes real posts, organizes by sentiment     |
 | 📺 What does this YouTube / Bilibili video cover?      | Can't read, no subtitles      | Reads the video/transcript, extracts key points |
 | 📖 Find Reddit threads about this pain point           | 403 blocked                   | Finds relevant threads and extracts solutions  |
 | 👔 Check this competitor / candidate's LinkedIn        | 403, access issues            | Opens the page, summarizes key info            |
@@ -92,14 +92,16 @@ That's it. No API key to copy, no JSON to edit.
 
 ## What your agent can now do
 
-AgentKey maintains cloud-side integrations with each platform — no extra accounts, no extra keys.
+AgentKey maintains cloud-side integrations across the open web — no extra accounts, no extra keys.
 
-  | Category | Services |
-  | :--- | :--- |
-  | **Search** | <img src="https://cdn.simpleicons.org/brave/FF2000" height="14" align="absmiddle" alt="" />&nbsp;Brave · <img src="https://cdn.simpleicons.org/perplexity/20B8CD" height="14" align="absmiddle" alt="" />&nbsp;Perplexity · Tavily · Serper |
-  | **Scrape** | Firecrawl · Jina Reader · ScrapeNinja |
-  | **On-chain / Crypto** | Chainbase · <img src="https://cdn.simpleicons.org/coinmarketcap/17181B" height="14" align="absmiddle" alt="" />&nbsp;CoinMarketCap · Dexscreener |
-  | **Social & Content** | <img src="https://cdn.simpleicons.org/bilibili/00A1D6" height="14" align="absmiddle" alt="" />&nbsp;Bilibili · <img src="https://cdn.simpleicons.org/tiktok/000000" height="14" align="absmiddle" alt="" />&nbsp;Douyin · <img src="https://cdn.simpleicons.org/instagram/E4405F" height="14" align="absmiddle" alt="" />&nbsp;Instagram · <img src="https://cdn.simpleicons.org/kuaishou/FF4900" height="14" align="absmiddle" alt="" />&nbsp;Kuaishou · Lemon8 · LinkedIn · <img src="https://cdn.simpleicons.org/reddit/FF4500" height="14" align="absmiddle" alt="" />&nbsp;Reddit · <img src="https://cdn.simpleicons.org/x/000000" height="14" align="absmiddle" alt="" />&nbsp;Twitter&nbsp;(X) · <img src="https://cdn.simpleicons.org/sinaweibo/E6162D" height="14" align="absmiddle" alt="" />&nbsp;Weibo · <img src="https://cdn.simpleicons.org/wechat/07C160" height="14" align="absmiddle" alt="" />&nbsp;Weixin · <img src="https://cdn.simpleicons.org/xiaohongshu/FF2442" height="14" align="absmiddle" alt="" />&nbsp;Xiaohongshu&nbsp;(maintenance) · <img src="https://cdn.simpleicons.org/youtube/FF0000" height="14" align="absmiddle" alt="" />&nbsp;YouTube · <img src="https://cdn.simpleicons.org/zhihu/0084FF" height="14" align="absmiddle" alt="" />&nbsp;Zhihu |
+| Capability | What it covers |
+| :--- | :--- |
+| **Web search** | Search engines, news, and real-time discovery across the open web |
+| **Web scraping** | Clean article extraction, structured data, and metadata from any URL |
+| **On-chain / Crypto** | Token prices, market data, on-chain activity, and project metadata |
+| **Social & content** | Public posts, videos, and discussions across major social and content platforms |
+
+Underlying providers are routed automatically and grow over time — your agent can call `find_tools` to see what's currently available.
 
 **Planned:** Financial data · E-commerce · Maps & Weather
 
@@ -130,7 +132,7 @@ Yes. AgentKey is a master key — one platform that unlocks external capabilitie
 <details>
 <summary><b>How is this different from Claude / ChatGPT's built-in web access?</b></summary>
 
-Native web access in Claude and ChatGPT has limited platform coverage. It often can't reach Twitter, Xiaohongshu, on-chain data, etc. AgentKey fills those gaps.
+Native web access in Claude and ChatGPT has limited platform coverage. It often can't reach Twitter, on-chain data, etc. AgentKey fills those gaps.
 
 </details>
 
