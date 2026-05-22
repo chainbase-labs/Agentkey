@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0](https://github.com/chainbase-labs/Agentkey/compare/v1.7.2...v1.8.0) (2026-05-22)
+
+
+### Features
+
+* **installer:** unify skill + MCP agent registration (16 agents) ([#41](https://github.com/chainbase-labs/Agentkey/issues/41)) ([8336301](https://github.com/chainbase-labs/Agentkey/commit/83363014c47a029e972095ef1df16005dbf2620b))
+
 ## [1.7.2](https://github.com/chainbase-labs/Agentkey/compare/v1.7.1...v1.7.2) (2026-05-15)
 
 
