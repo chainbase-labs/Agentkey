@@ -47,3 +47,46 @@ jobs:
           gh release upload "$TAG" agentkey.skill \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
+
+  publish-clawhub:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Pin the CLI for reproducible publishes; bump deliberately.
+      - name: Install ClawHub CLI
+        run: npm i -g clawhub@0.18.0
+
+      - name: Authenticate with ClawHub
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: clawhub login --no-browser --token "$CLAWHUB_TOKEN"
+
+      - name: Publish skill to ClawHub
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+
+          # Extract this version's section body from CHANGELOG.md (no header line).
+          CHANGELOG="$(awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { f=1; next }
+            f && /^## \[/ { exit }
+            f { print }
+          ' CHANGELOG.md | sed '/^[[:space:]]*$/d')"
+          [ -n "$CHANGELOG" ] || CHANGELOG="Release $TAG"
+
+          clawhub skill publish skills/agentkey \
+            --no-input \
+            --owner chainbase \
+            --slug agentkey \
+            --version "$VERSION" \
+            --changelog "$CHANGELOG" \
+            --clawscan-note "Expected behavior: this is an MCP-adapter skill. (1) SKILL.md routes the agent to the remote AgentKey HTTP MCP endpoint (https://api.agentkey.app/v1/mcp) for real-time data (web search, social, on-chain). (2) scripts/check-update.sh makes a read-only curl to the GitHub Releases API to notify when a newer skill version exists; it never modifies the install. (3) scripts/check-mcp.sh reads local agent config files (e.g. ~/.claude.json) and runs 'claude mcp list' to detect whether the MCP is registered and an API key is present. This is local config inspection and version checking, not credential exfiltration; the API key is user-provided and stays in standard local MCP config."
