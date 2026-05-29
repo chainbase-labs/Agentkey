@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0](https://github.com/chainbase-labs/Agentkey/compare/v1.8.0...v1.9.0) (2026-05-29)
+
+
+### Features
+
+* **skill:** cost-aware batch workflow + agentkey_account in tools table ([#57](https://github.com/chainbase-labs/Agentkey/issues/57)) ([f6dbed1](https://github.com/chainbase-labs/Agentkey/commit/f6dbed1d6392602d6b05e04282d20af2e5e7c869))
+
 ## [1.8.0](https://github.com/chainbase-labs/Agentkey/compare/v1.7.2...v1.8.0) (2026-05-22)
 
 
