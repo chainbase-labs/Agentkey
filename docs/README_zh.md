@@ -346,14 +346,19 @@ npx -y @agentkey/cli --auth-login
 
 **想改 MCP Server 本身？** MCP server 在 `AgentKey-Server/`（Go），端点是 `/v1/mcp`。本地起服务（`make run`），把 MCP 配置指向 `http://localhost:8081/v1/mcp` 就能端到端验证。
 
-**Claude Code 插件模式** —— 把仓库当成本地 marketplace 安装：
+**Claude Code 插件模式** —— 直接从 marketplace 安装。插件启用时会提示你填 AgentKey API Key 并自动接好 MCP server，**不需要再单独跑 `@agentkey/cli`**：
 
 ```bash
+# 公开安装
+claude plugin marketplace add chainbase-labs/agentkey
+claude plugin install agentkey@agentkey
+
+# …或从本地 checkout 安装，用于开发
 claude plugin marketplace add /absolute/path/to/agentkey
-claude plugin install agentkey
+claude plugin install agentkey@agentkey
 ```
 
-编辑文件后 `claude plugin update agentkey` 重新加载。日常 Skill 调整用 skills CLI 就够；只有在验证 Claude Code 插件内部机制（例如 `CLAUDE_PLUGIN_OPTION_*` 环境变量接线）时才走插件路径。
+启用时 Claude Code 会提示填 `AGENTKEY_API_KEY`（存进系统钥匙串），并通过 `${user_config.AGENTKEY_API_KEY}` 注入插件的 `.mcp.json`。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 skills CLI 最快；插件路径是给 Claude Code 用户的一步到位选项。
 
 **仓库结构：**
 
