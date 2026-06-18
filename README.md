@@ -346,14 +346,19 @@ npx -y @agentkey/cli --auth-login
 
 **Iterating on the MCP server itself?** The server lives at `AgentKey-Server/` (Go) and exposes the MCP endpoint at `/v1/mcp`. Run a local server (`make run`) and point your MCP config at `http://localhost:8081/v1/mcp` to test changes end-to-end.
 
-**Claude Code plugin mode** — add the repo as a local marketplace:
+**Claude Code plugin mode** — install straight from the marketplace. The plugin prompts you for your AgentKey API key on enable and wires the MCP server for you, so there's **no second `@agentkey/cli` step**:
 
 ```bash
+# Public install
+claude plugin marketplace add chainbase-labs/agentkey
+claude plugin install agentkey@agentkey
+
+# …or from a local checkout, for development
 claude plugin marketplace add /absolute/path/to/agentkey
-claude plugin install agentkey
+claude plugin install agentkey@agentkey
 ```
 
-Reload with `claude plugin update agentkey` after edits. Use the skills-CLI path for day-to-day edits; the plugin path only for testing Claude Code plugin internals (e.g. MCP env-var wiring through `CLAUDE_PLUGIN_OPTION_*`).
+On enable, Claude Code prompts for `AGENTKEY_API_KEY` (stored in your OS keychain) and injects it into the plugin's `.mcp.json` via `${user_config.AGENTKEY_API_KEY}`. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day skill iteration is still fastest via the skills-CLI path; the plugin path is the one-step option for Claude Code users.
 
 **Repo layout:**
 
