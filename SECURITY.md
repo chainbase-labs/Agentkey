@@ -46,16 +46,16 @@ The skill verifies MCP health by calling the MCP `list_tools` endpoint directly 
 | `~/.config/agentkey/auto-upgrade` | written by the agent on user's "Always keep me up to date" choice; read by Step 0 to skip the prompt | Persistent auto-upgrade opt-in |
 | `~/.config/agentkey/update-snoozed` | written by the agent on user's "Not now" choice; read by `check-update.sh` to suppress reminders | Snooze state (`<version> <level> <epoch>`) |
 | `~/.config/agentkey/update-disabled` | written by the agent on user's "Never ask again" choice; read by `check-update.sh` to exit silently | Permanent disable for update checks |
-| `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) / `%APPDATA%/Claude/...` (Windows) | written by the separate `npx -y @agentkey/cli --auth-login` command, **not** by the skill | MCP registration |
-| `~/.claude.json` | written by `--auth-login` (`claude mcp add`), **not** by the skill | Claude Code MCP registration + `AGENTKEY_API_KEY` storage |
-| `~/.cursor/mcp.json` | written by `--auth-login`, **not** by the skill | MCP registration |
+| `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) / `%APPDATA%/Claude/...` (Windows) | written by your MCP client / agent when you register the AgentKey server, **not** by the skill | MCP registration |
+| `~/.claude.json` | written by your MCP client / agent when you register the AgentKey server (e.g. `claude mcp add`), **not** by the skill | Claude Code MCP registration (+ `AGENTKEY_API_KEY` storage on the API-key fallback path) |
+| `~/.cursor/mcp.json` | written by your MCP client / agent when you register the AgentKey server, **not** by the skill | MCP registration |
 
 ### Network egress from the skill
 
 | Destination | When | Why |
 |---|---|---|
 | `api.github.com` | At most every 24 hours | Look up the latest release tag |
-| npm registry | When the user first runs `npx -y @agentkey/cli --auth-login` | Resolve and run the AgentKey CLI |
+| npm registry | When the user accepts a skill update | Resolve and run `npx skills update agentkey` |
 
 ### Credential handling
 
