@@ -368,7 +368,7 @@ agentkey/
 ├── .mcp.json                    # 作为插件安装时使用
 ├── skills/agentkey/
 │   ├── SKILL.md                 # 决策树 & 路由规则
-│   ├── scripts/                 # check-mcp / check-update 辅助脚本
+│   ├── scripts/                 # check-update 辅助脚本
 │   └── version.txt              # 由 release-please 自动维护
 └── scripts/
     ├── install.sh               # 一键安装脚本（mac/linux）

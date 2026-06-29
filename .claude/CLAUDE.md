@@ -23,7 +23,7 @@ agentkey/
 ├── .mcp.json                    # Auto-registers AgentKey MCP when installed as a plugin
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules (end-user facing)
-│   ├── scripts/                 # check-mcp / check-update helpers
+│   ├── scripts/                 # check-update helper
 │   └── version.txt              # Managed by release-please only — must live inside the skill so it survives `npx skills add`
 └── scripts/
     └── uninstall.sh             # End-user cleanup helper

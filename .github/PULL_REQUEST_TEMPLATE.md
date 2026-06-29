@@ -27,7 +27,6 @@
 **Any change:**
 - [ ] No knowledge added to `SKILL.md` (routing logic only)
 - [ ] Reference guides follow the standard structure (see `CONTRIBUTING.md`)
-- [ ] `check-mcp.sh` still works if `.mcp.json` was touched
 
 ---
 

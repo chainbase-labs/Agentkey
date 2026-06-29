@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1](https://github.com/chainbase-labs/Agentkey/compare/v1.9.0...v1.9.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* **plugin:** wire .mcp.json remote MCP server for plugin installs ([#60](https://github.com/chainbase-labs/Agentkey/issues/60)) ([35eab21](https://github.com/chainbase-labs/Agentkey/commit/35eab218724bbc6d55800d7297b1792a6d324676))
+
 ## [1.9.0](https://github.com/chainbase-labs/Agentkey/compare/v1.8.0...v1.9.0) (2026-05-29)
 
 

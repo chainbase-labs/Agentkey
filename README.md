@@ -368,7 +368,7 @@ agentkey/
 ├── .mcp.json                    # Used when installed as a plugin
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules
-│   ├── scripts/                 # check-mcp / check-update helpers
+│   ├── scripts/                 # check-update helper
 │   └── version.txt              # Managed by release-please
 └── scripts/
     ├── install.sh               # One-command installer (mac/linux)
