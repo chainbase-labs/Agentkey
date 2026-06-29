@@ -103,21 +103,23 @@ Never expose raw error details to user.
 
 ## Setup
 
-The skill is useless without the AgentKey MCP server registered with the user's agent. Install / re-auth in one shot — run this in the user's shell:
+The skill is useless without the AgentKey MCP server registered with the user's agent. Two ways to connect — **try OAuth first**; fall back to an API key only if OAuth isn't available.
 
-```
-! npx -y @agentkey/cli --auth-login
-```
+### 1 — OAuth (preferred)
 
-It opens a browser to mint an API key, then registers the AgentKey MCP server with the user's agent. The skill writes no files itself; the separate `@agentkey/cli` package does that. (See `SECURITY.md` in the repo root for the full list of supported clients and the exact files the CLI touches.)
+Register the hosted MCP server into **whatever client you're running in**, using that client's own mechanism (an `mcp add` CLI command, an MCP settings panel, or editing its config file). Connection params:
 
-When the command finishes, tell the user verbatim:
+- **Transport:** HTTP
+- **URL:** `https://api.agentkey.app/v1/mcp`
+- **Auth header:** none — leave it out
 
-> ✅ MCP installed. **Please fully quit and restart your agent** so the new tools load. Then re-ask your original question.
+With no key present, an OAuth-capable client opens a browser to authorize on first connect. Add the server, then tell the user to complete the sign-in prompt their client shows (typically an **Authenticate** action in its MCP panel). Per-client steps: `references/setup.md` → "OAuth registration".
 
-Do NOT continue to Query in the same turn — the MCP tools will not exist until the agent restarts.
+### 2 — API key (fallback)
 
-If the CLI reports it couldn't write your client's config (Codex / OpenCode / Gemini CLI / Linux Claude Desktop / Hermes / Manus / any other client not on the auto-list), see `references/setup.md` for the manual-install JSON.
+Use only if the client can't do MCP OAuth, or the OAuth flow fails. Mint a key in the Console and register the same URL with an `Authorization: Bearer` header — full steps + JSON in `references/setup.md` → "API-key fallback".
+
+Do NOT continue to Query in the same turn — the MCP tools won't exist until the agent connects/restarts.
 
 ## Status
 
