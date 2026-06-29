@@ -125,7 +125,7 @@ Underlying providers are routed automatically and grow over time — your agent 
 <details>
 <summary><b>Is it safe?</b></summary>
 
-Yes. AgentKey is a master key — one platform that unlocks external capabilities for your agent. By design, we have no access to your local files, your credentials, or your agent's conversations. The only data AgentKey collects is anonymous usage telemetry — which agent you installed into, your skill version, and upgrade outcomes — never your queries or responses. See "How do I opt out of telemetry?" below.
+Yes. AgentKey is a master key — one platform that unlocks external capabilities for your agent. By design, we have no access to your local files, your credentials, or your agent's conversations. The only data AgentKey collects is anonymous usage telemetry — which agent you installed into or removed from, your skill version, and upgrade outcomes — never your queries or responses. See "How do I opt out of telemetry?" below.
 
 </details>
 
@@ -230,7 +230,7 @@ The one-command uninstaller additionally cleans npm/npx caches, legacy shell rc 
 <details>
 <summary><b>How do I opt out of telemetry?</b></summary>
 
-AgentKey sends anonymous usage telemetry (which agent you use, skill version, upgrade outcomes — never queries or responses). Three ways to opt out, any of them works:
+AgentKey sends anonymous usage telemetry (which agent you install into or remove from, skill version, upgrade outcomes — never queries or responses). Three ways to opt out, any of them works:
 
 ```bash
 # Persistent opt-out (recommended)

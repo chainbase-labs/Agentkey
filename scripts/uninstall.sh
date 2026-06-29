@@ -56,6 +56,168 @@ warn()    { printf "  ${WARN}!${NC} %s\n" "$*"; }
 skipped() { printf "  ${MUTED}-${NC} %s\n" "$*"; }
 step()    { printf "\n  ${BOLD}%s${NC}\n" "$*"; }
 
+have_python() { command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; }
+py() { if command -v python3 >/dev/null 2>&1; then python3 "$@"; else python "$@"; fi; }
+
+send_uninstall_telemetry() {
+    [ "${AGENTKEY_TELEMETRY:-1}" = "0" ] && return 0
+    [ -f "$HOME/.config/agentkey/telemetry-disabled" ] && return 0
+    have_python || return 0
+
+    AGENTKEY_UNINSTALLER_FLAGS="$*" py <<'PY' >/dev/null 2>&1 || true
+import hashlib
+import json
+import os
+import platform
+import re
+import socket
+import sys
+import urllib.request
+
+HOME = os.path.expanduser("~")
+SERVER_NAMES = {"agentkey", "agentkey.app agentkey"}
+DEFAULT_BASE_URL = "https://api.agentkey.app"
+
+json_configs = [
+    ("claude-code", os.path.join(HOME, ".claude.json")),
+    ("cursor", os.path.join(HOME, ".cursor", "mcp.json")),
+    ("gemini-cli", os.path.join(HOME, ".gemini", "settings.json")),
+    ("qwen-code", os.path.join(HOME, ".qwen", "settings.json")),
+    ("iflow-cli", os.path.join(HOME, ".iflow", "settings.json")),
+    ("kimi-cli", os.path.join(HOME, ".kimi", "mcp.json")),
+    ("kiro-cli", os.path.join(HOME, ".kiro", "settings", "mcp.json")),
+    ("windsurf", os.path.join(HOME, ".codeium", "windsurf", "mcp_config.json")),
+    ("warp", os.path.join(HOME, ".warp", ".mcp.json")),
+    ("opencode", os.path.join(HOME, ".config", "opencode", "opencode.json")),
+    ("amp", os.path.join(HOME, ".config", "amp", "settings.json")),
+    ("crush", os.path.join(HOME, ".config", "crush", "crush.json")),
+]
+if sys.platform == "darwin":
+    json_configs.append(("claude-desktop", os.path.join(HOME, "Library", "Application Support", "Claude", "claude_desktop_config.json")))
+else:
+    json_configs.append(("claude-desktop", os.path.join(HOME, ".config", "Claude", "claude_desktop_config.json")))
+
+toml_configs = [("codex", os.path.join(HOME, ".codex", "config.toml"))]
+
+api_key = ""
+removed_agents = set()
+
+def remember(agent_id, entry):
+    global api_key
+    removed_agents.add(agent_id)
+    if not isinstance(entry, dict) or api_key:
+        return
+    for field in ("headers", "http_headers", "env", "environment"):
+        bag = entry.get(field)
+        if not isinstance(bag, dict):
+            continue
+        auth = bag.get("Authorization") or bag.get("authorization")
+        if isinstance(auth, str):
+            m = re.search(r"\bBearer\s+(.+)$", auth.strip(), re.I)
+            if m:
+                api_key = m.group(1).strip()
+                return
+        val = bag.get("AGENTKEY_API_KEY")
+        if isinstance(val, str) and val:
+            api_key = val.strip()
+            return
+
+def walk_json(agent_id, node):
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key.lower() in SERVER_NAMES:
+                remember(agent_id, value)
+            else:
+                walk_json(agent_id, value)
+    elif isinstance(node, list):
+        for item in node:
+            walk_json(agent_id, item)
+
+for agent_id, path in json_configs:
+    try:
+        with open(path, encoding="utf-8") as f:
+            walk_json(agent_id, json.load(f))
+    except Exception:
+        pass
+
+agent_header = re.compile(r'^\s*\[\s*mcp_servers\s*\.\s*(agentkey|"agentkey\.app AgentKey")(\.[^\]]+)?\s*\]\s*$')
+any_header = re.compile(r"^\s*\[[^\]]+\]\s*$")
+for agent_id, path in toml_configs:
+    try:
+        in_block = False
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                if agent_header.match(line):
+                    in_block = True
+                    removed_agents.add(agent_id)
+                    continue
+                if any_header.match(line):
+                    in_block = False
+                if not in_block or api_key:
+                    continue
+                m = re.search(r'Authorization\s*=\s*"Bearer\s+([^"]+)"', line)
+                if not m:
+                    m = re.search(r'AGENTKEY_API_KEY\s*=\s*"([^"]+)"', line)
+                if m:
+                    api_key = m.group(1).strip()
+    except Exception:
+        pass
+
+if not api_key or not removed_agents:
+    raise SystemExit(0)
+
+skill_version = ""
+for rel in (
+    ".agents/skills/agentkey/version.txt",
+    ".claude/skills/agentkey/version.txt",
+    ".cursor/skills/agentkey/version.txt",
+    ".codex/skills/agentkey/version.txt",
+    ".gemini/skills/agentkey/version.txt",
+    ".opencode/skills/agentkey/version.txt",
+    ".openclaw/skills/agentkey/version.txt",
+    ".qwen/skills/agentkey/version.txt",
+    ".iflow/skills/agentkey/version.txt",
+    ".windsurf/skills/agentkey/version.txt",
+    ".warp/skills/agentkey/version.txt",
+    ".kimi/skills/agentkey/version.txt",
+    ".kiro/skills/agentkey/version.txt",
+    ".config/amp/skills/agentkey/version.txt",
+    ".config/crush/skills/agentkey/version.txt",
+    ".config/goose/skills/agentkey/version.txt",
+):
+    try:
+        with open(os.path.join(HOME, rel), encoding="utf-8") as f:
+            skill_version = f.read().strip()
+            break
+    except Exception:
+        pass
+
+os_name = "macos" if sys.platform == "darwin" else "linux"
+user = os.environ.get("USER") or ""
+fingerprint_input = f"{socket.gethostname()}|{os_name}|{user}"
+device_fingerprint = hashlib.sha256(fingerprint_input.encode()).hexdigest()[:16]
+base_url = (os.environ.get("AGENTKEY_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
+payload = {
+    "properties": {
+        "device_fingerprint": device_fingerprint,
+        "uninstall_source": "one_liner",
+        "removed_agents": sorted(removed_agents),
+        "uninstaller_flags": [x for x in os.environ.get("AGENTKEY_UNINSTALLER_FLAGS", "").split() if x],
+        "skill_version": skill_version,
+        "os": sys.platform,
+        "os_arch": platform.machine(),
+    }
+}
+req = urllib.request.Request(
+    f"{base_url}/v1/telemetry/uninstall-completed",
+    data=json.dumps(payload).encode("utf-8"),
+    headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+    method="POST",
+)
+urllib.request.urlopen(req, timeout=2).read()
+PY
+}
+
 # ── Safety rail ──────────────────────────────────────────────────────────
 if [ -f ".claude-plugin/plugin.json" ] \
    && grep -q '"name"[[:space:]]*:[[:space:]]*"agentkey"' .claude-plugin/plugin.json 2>/dev/null \
@@ -69,6 +231,8 @@ fi
 
 printf "\n  ${BOLD}AgentKey — Uninstall${NC}\n"
 printf "  ${MUTED}https://agentkey.app${NC}\n"
+
+send_uninstall_telemetry "$@"
 
 # ── 1. Remove the skill via skills CLI ────────────────────────────────────
 step "1. Skill files"
@@ -132,9 +296,6 @@ fi
 MCP_TOML_CONFIGS=(
     "$HOME/.codex/config.toml"                                            # Codex CLI
 )
-
-have_python() { command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; }
-py() { if command -v python3 >/dev/null 2>&1; then python3 "$@"; else python "$@"; fi; }
 
 if ! have_python; then
     warn "python not found — skipping JSON cleanup; edit these files manually:"

@@ -125,7 +125,7 @@ AgentKey 在云端维护与开放互联网各类平台的对接 —— 你不需
 <details>
 <summary><b>安全吗？</b></summary>
 
-安全。AgentKey 是 Agent 的"万能钥匙"—— 一个平台帮你的 Agent 解锁外部能力。按架构设计，我们看不到你的本地文件、凭证或 Agent 的对话。AgentKey 只采集匿名使用统计 —— 你装到了哪些 Agent、Skill 版本、升级结果 —— 永远不采集你的查询内容或返回数据。详见下方"我如何关闭遥测？"。
+安全。AgentKey 是 Agent 的"万能钥匙"—— 一个平台帮你的 Agent 解锁外部能力。按架构设计，我们看不到你的本地文件、凭证或 Agent 的对话。AgentKey 只采集匿名使用统计 —— 你装到或移除了哪些 Agent、Skill 版本、升级结果 —— 永远不采集你的查询内容或返回数据。详见下方"我如何关闭遥测？"。
 
 </details>
 
@@ -230,7 +230,7 @@ npx skills remove chainbase-labs/agentkey
 <details>
 <summary><b>我如何关闭遥测？</b></summary>
 
-AgentKey 会上报匿名使用统计（你用的 Agent、Skill 版本、升级结果 —— 永远不会上报查询内容或返回数据）。任选一种方式关闭：
+AgentKey 会上报匿名使用统计（你安装到或移除的 Agent、Skill 版本、升级结果 —— 永远不会上报查询内容或返回数据）。任选一种方式关闭：
 
 ```bash
 # 持久关闭（推荐）

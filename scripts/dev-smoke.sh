@@ -390,6 +390,48 @@ command = "legacy"
 key = "val"
 EOF
 
+    # Mock telemetry endpoint: uninstaller should post once before scrubbing
+    # configs, but telemetry must remain best-effort and isolated to sandbox.
+    local telemetry_log="$SANDBOX/telemetry.json"
+    local telemetry_port_file="$SANDBOX/telemetry-port"
+    python3 -u - "$telemetry_log" "$telemetry_port_file" <<'PY' &
+import http.server
+import json
+import sys
+
+log_path, port_path = sys.argv[1], sys.argv[2]
+
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):
+        length = int(self.headers.get("Content-Length") or "0")
+        body = self.rfile.read(length).decode("utf-8")
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps({
+                "path": self.path,
+                "authorization": self.headers.get("Authorization"),
+                "body": body,
+            }))
+        self.send_response(204)
+        self.end_headers()
+
+    def log_message(self, *_):
+        pass
+
+server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+with open(port_path, "w", encoding="utf-8") as f:
+    f.write(str(server.server_port))
+server.timeout = 10
+server.handle_request()
+PY
+    local telemetry_pid=$!
+    local _wait
+    for _wait in {1..50}; do
+        [ -s "$telemetry_port_file" ] && break
+        sleep 0.1
+    done
+    local telemetry_port
+    telemetry_port="$(cat "$telemetry_port_file" 2>/dev/null || true)"
+
     # Gemini: claude-code per-project shape simulator (nested).
     cat > "$SANDBOX/.claude.json" <<'EOF'
 {
@@ -407,8 +449,24 @@ EOF
 
     # ── Run the uninstaller in the sandbox ────────────────────────────────
     info "running uninstall.sh --skip-skill-remove --force-in-repo"
-    HOME="$SANDBOX" bash "$SKILL_REPO/scripts/uninstall.sh" \
+    AGENTKEY_BASE_URL="http://127.0.0.1:$telemetry_port" \
+        HOME="$SANDBOX" bash "$SKILL_REPO/scripts/uninstall.sh" \
         --skip-skill-remove --force-in-repo >/dev/null 2>&1 || true
+    for _wait in {1..50}; do
+        [ -s "$telemetry_log" ] && break
+        sleep 0.1
+    done
+    kill "$telemetry_pid" 2>/dev/null || true
+    wait "$telemetry_pid" 2>/dev/null || true
+
+    local telemetry_body
+    telemetry_body="$(cat "$telemetry_log" 2>/dev/null || true)"
+    assert_contains "uninstall telemetry endpoint called" \
+        "/v1/telemetry/uninstall-completed" "$telemetry_body"
+    assert_contains "uninstall telemetry uses stored API key" \
+        "Bearer ak_xxx" "$telemetry_body"
+    assert_contains "uninstall telemetry includes removed codex agent" \
+        "codex" "$telemetry_body"
 
     # ── Assertions: agentkey gone, decoys preserved ───────────────────────
     info "checking: agentkey entries scrubbed"

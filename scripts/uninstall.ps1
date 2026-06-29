@@ -49,6 +49,170 @@ function Write-Warn2($t) { Write-Host "  ! $t" -ForegroundColor Yellow }
 function Write-Skip ($t) { Write-Host "  - $t" -ForegroundColor DarkGray }
 function Write-Err  ($t) { Write-Host "  ✗ $t" -ForegroundColor Red }
 
+$home2 = [Environment]::GetFolderPath('UserProfile')
+$UninstallerFlags = @($PSBoundParameters.Keys | ForEach-Object { "-$_" })
+
+function Send-UninstallTelemetry {
+    try {
+        if ($env:AGENTKEY_TELEMETRY -eq '0') { return }
+        $optOut = Join-Path $home2 '.config\agentkey\telemetry-disabled'
+        if (Test-Path -LiteralPath $optOut) { return }
+
+        $script:TelemetryApiKey = $null
+        $script:TelemetryAgents = @()
+        $serverNames = @('agentkey', 'agentkey.app agentkey')
+
+        function Add-TelemetryAgent($id) {
+            if ($script:TelemetryAgents -notcontains $id) {
+                $script:TelemetryAgents += $id
+            }
+        }
+
+        function Read-TelemetryEntry($id, $entry) {
+            Add-TelemetryAgent $id
+            if ($null -eq $entry -or $script:TelemetryApiKey) { return }
+            try {
+                foreach ($field in @('headers', 'http_headers', 'env', 'environment')) {
+                    $bagProp = $entry.PSObject.Properties[$field]
+                    if ($null -eq $bagProp -or $null -eq $bagProp.Value) { continue }
+                    $bag = $bagProp.Value
+                    if ($bag.PSObject.Properties['Authorization']) {
+                        $auth = [string]$bag.Authorization
+                        if ($auth -match '(?i)\bBearer\s+(.+)$') {
+                            $script:TelemetryApiKey = $Matches[1].Trim()
+                            return
+                        }
+                    }
+                    if ($bag.PSObject.Properties['AGENTKEY_API_KEY']) {
+                        $script:TelemetryApiKey = ([string]$bag.AGENTKEY_API_KEY).Trim()
+                        return
+                    }
+                }
+            } catch {}
+        }
+
+        function Walk-TelemetryJson($id, $node) {
+            if ($null -eq $node) { return }
+            if ($node -is [System.Management.Automation.PSCustomObject]) {
+                foreach ($prop in @($node.PSObject.Properties)) {
+                    if ($serverNames -contains $prop.Name.ToLower()) {
+                        Read-TelemetryEntry $id $prop.Value
+                    } else {
+                        Walk-TelemetryJson $id $prop.Value
+                    }
+                }
+            } elseif ($node -is [System.Collections.IEnumerable] -and -not ($node -is [string])) {
+                foreach ($item in $node) { Walk-TelemetryJson $id $item }
+            }
+        }
+
+        $jsonConfigs = @(
+            @{ Id = 'claude-code';     Path = (Join-Path $home2 '.claude.json') },
+            @{ Id = 'cursor';          Path = (Join-Path $home2 '.cursor\mcp.json') },
+            @{ Id = 'claude-desktop';  Path = (Join-Path $env:APPDATA 'Claude\claude_desktop_config.json') },
+            @{ Id = 'gemini-cli';      Path = (Join-Path $home2 '.gemini\settings.json') },
+            @{ Id = 'qwen-code';       Path = (Join-Path $home2 '.qwen\settings.json') },
+            @{ Id = 'iflow-cli';       Path = (Join-Path $home2 '.iflow\settings.json') },
+            @{ Id = 'kimi-cli';        Path = (Join-Path $home2 '.kimi\mcp.json') },
+            @{ Id = 'kiro-cli';        Path = (Join-Path $home2 '.kiro\settings\mcp.json') },
+            @{ Id = 'windsurf';        Path = (Join-Path $home2 '.codeium\windsurf\mcp_config.json') },
+            @{ Id = 'warp';            Path = (Join-Path $home2 '.warp\.mcp.json') },
+            @{ Id = 'opencode';        Path = (Join-Path $env:APPDATA 'opencode\opencode.json') },
+            @{ Id = 'amp';             Path = (Join-Path $env:APPDATA 'amp\settings.json') },
+            @{ Id = 'crush';           Path = (Join-Path $env:APPDATA 'crush\crush.json') }
+        )
+        foreach ($cfg in $jsonConfigs) {
+            if (-not (Test-Path -LiteralPath $cfg.Path)) { continue }
+            try {
+                Walk-TelemetryJson $cfg.Id (Get-Content $cfg.Path -Raw | ConvertFrom-Json)
+            } catch {}
+        }
+
+        $codexToml = Join-Path $home2 '.codex\config.toml'
+        if (Test-Path -LiteralPath $codexToml) {
+            $inBlock = $false
+            foreach ($line in Get-Content $codexToml) {
+                if ($line -match '^\s*\[\s*mcp_servers\s*\.\s*(agentkey|"agentkey\.app AgentKey")(\.[^\]]+)?\s*\]\s*$') {
+                    $inBlock = $true
+                    Add-TelemetryAgent 'codex'
+                    continue
+                }
+                if ($line -match '^\s*\[[^\]]+\]\s*$') { $inBlock = $false }
+                if (-not $inBlock -or $script:TelemetryApiKey) { continue }
+                if ($line -match 'Authorization\s*=\s*"Bearer\s+([^"]+)"') {
+                    $script:TelemetryApiKey = $Matches[1].Trim()
+                } elseif ($line -match 'AGENTKEY_API_KEY\s*=\s*"([^"]+)"') {
+                    $script:TelemetryApiKey = $Matches[1].Trim()
+                }
+            }
+        }
+
+        if (-not $script:TelemetryApiKey -or $script:TelemetryAgents.Count -eq 0) { return }
+
+        $skillVersion = ''
+        $versionCandidates = @(
+            '.agents\skills\agentkey\version.txt',
+            '.claude\skills\agentkey\version.txt',
+            '.cursor\skills\agentkey\version.txt',
+            '.codex\skills\agentkey\version.txt',
+            '.gemini\skills\agentkey\version.txt',
+            '.opencode\skills\agentkey\version.txt',
+            '.openclaw\skills\agentkey\version.txt',
+            '.qwen\skills\agentkey\version.txt',
+            '.iflow\skills\agentkey\version.txt',
+            '.windsurf\skills\agentkey\version.txt',
+            '.warp\skills\agentkey\version.txt',
+            '.kimi\skills\agentkey\version.txt',
+            '.kiro\skills\agentkey\version.txt'
+        )
+        foreach ($rel in $versionCandidates) {
+            $p = Join-Path $home2 $rel
+            if (Test-Path -LiteralPath $p) {
+                $skillVersion = (Get-Content $p -Raw).Trim()
+                break
+            }
+        }
+        foreach ($rel in @(
+            'amp\skills\agentkey\version.txt',
+            'crush\skills\agentkey\version.txt',
+            'goose\skills\agentkey\version.txt',
+            'opencode\skills\agentkey\version.txt'
+        )) {
+            if ($skillVersion) { break }
+            $p = Join-Path $env:APPDATA $rel
+            if (Test-Path -LiteralPath $p) {
+                $skillVersion = (Get-Content $p -Raw).Trim()
+            }
+        }
+
+        $_hn = [System.Net.Dns]::GetHostName()
+        $_user = $env:USERNAME
+        $_bytes = [System.Text.Encoding]::UTF8.GetBytes("$_hn|windows|$_user")
+        $_sha = [System.Security.Cryptography.SHA256]::Create()
+        $_hash = ($_sha.ComputeHash($_bytes) | ForEach-Object { $_.ToString('x2') }) -join ''
+        $baseUrl = if ($env:AGENTKEY_BASE_URL) { $env:AGENTKEY_BASE_URL.TrimEnd('/') } else { 'https://api.agentkey.app' }
+        $payload = @{
+            properties = @{
+                device_fingerprint = $_hash.Substring(0, 16)
+                uninstall_source = 'one_liner'
+                removed_agents = @($script:TelemetryAgents | Sort-Object -Unique)
+                uninstaller_flags = $script:UninstallerFlags
+                skill_version = $skillVersion
+                os = 'win32'
+                os_arch = $env:PROCESSOR_ARCHITECTURE
+            }
+        } | ConvertTo-Json -Depth 10
+
+        Invoke-WebRequest -Uri "$baseUrl/v1/telemetry/uninstall-completed" `
+            -Method Post `
+            -Headers @{ Authorization = "Bearer $script:TelemetryApiKey" } `
+            -ContentType 'application/json' `
+            -Body $payload `
+            -TimeoutSec 2 `
+            -UseBasicParsing | Out-Null
+    } catch {}
+}
+
 # ── Safety rail ──────────────────────────────────────────────────────────
 if ((Test-Path '.claude-plugin/plugin.json') -and -not $ForceInRepo) {
     $content = Get-Content '.claude-plugin/plugin.json' -Raw -ErrorAction SilentlyContinue
@@ -67,6 +231,8 @@ if ((Test-Path '.claude-plugin/plugin.json') -and -not $ForceInRepo) {
 Write-Host ''
 Write-Host '  AgentKey — Uninstall' -ForegroundColor White
 Write-Host '  https://agentkey.app' -ForegroundColor DarkGray
+
+Send-UninstallTelemetry
 
 # ── 1. Skill removal via skills CLI ──────────────────────────────────────
 Write-Step '1. Skill files'
@@ -93,8 +259,6 @@ if ($SkipSkillRemove) {
 
 # ── 2. MCP config cleanup ────────────────────────────────────────────────
 Write-Step '2. MCP server entries'
-
-$home2 = [Environment]::GetFolderPath('UserProfile')
 
 # All known JSON MCP config paths across the 16 auto-supported agents. The
 # scrub logic is schema-agnostic — it walks the JSON tree and drops any

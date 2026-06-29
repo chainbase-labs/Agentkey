@@ -56,12 +56,13 @@ The skill verifies MCP health by calling the MCP `list_tools` endpoint directly 
 |---|---|---|
 | `api.github.com` | At most every 24 hours | Look up the latest release tag |
 | npm registry | When the user accepts a skill update | Resolve and run `npx skills update agentkey` |
+| `api.agentkey.app` | On install, uninstall, and best-effort skill/update checks unless telemetry is disabled | Anonymous usage telemetry and update metadata |
 
 ### Credential handling
 
 - `AGENTKEY_API_KEY` is stored only in user-local config files (paths above).
 - The key leaves the user's machine only as the `Authorization` header to AgentKey's own API endpoints.
-- The skill collects no telemetry.
+- Telemetry is anonymous and limited to install/uninstall/update metadata; it never includes queries, responses, or local file contents.
 
 ### Supply chain
 
