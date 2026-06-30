@@ -11,7 +11,6 @@
 <p align="center">
   <a href="#install">Install</a> ·
   <a href="#what-your-agent-can-now-do">Platforms</a> ·
-  <a href="#pricing">Pricing</a> ·
   <a href="#faq">FAQ</a> ·
   <a href="docs/README_zh.md">中文</a>
 </p>
@@ -100,23 +99,13 @@ AgentKey maintains cloud-side integrations across the open web — no extra acco
 | **Web scraping** | Clean article extraction, structured data, and metadata from any URL |
 | **On-chain / Crypto** | Token prices, market data, on-chain activity, and project metadata |
 | **Social & content** | Public posts, videos, and discussions across major social and content platforms |
+| **Finance** | Stock & FX quotes, technical indicators, company financials, and earnings |
+| **E-commerce** | Product listings, prices, reviews, and best-sellers across major marketplaces |
+| **Business** | Company, funding, investor, and people data for market and competitive research |
 
 Underlying providers are routed automatically and grow over time — your agent can call `find_tools` to see what's currently available.
 
-**Planned:** Financial data · E-commerce · Maps & Weather
-
----
-
-## Pricing
-
-**No monthly fee. Pay only for what you use.** Top up any amount, spend by credit:
-
-| What you ask your agent to do | Approx. cost |
-|-------------------------------|--------------|
-| Web search | $0.001 |
-| Crypto / token lookup | $0.003 |
-| Social media read | $0.006 |
-| Daily scheduled task | ~$5–10 / month |
+**Planned:** Maps & Weather
 
 ---
 
