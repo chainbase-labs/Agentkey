@@ -68,6 +68,14 @@ function Send-UninstallTelemetry {
             }
         }
 
+        function Set-TelemetryApiKey($value) {
+            if ($null -eq $value) { return $false }
+            $v = ([string]$value).Trim()
+            if (-not $v.StartsWith('ak_')) { return $false }
+            $script:TelemetryApiKey = $v
+            return $true
+        }
+
         function Read-TelemetryEntry($id, $entry) {
             Add-TelemetryAgent $id
             if ($null -eq $entry -or $script:TelemetryApiKey) { return }
@@ -79,13 +87,11 @@ function Send-UninstallTelemetry {
                     if ($bag.PSObject.Properties['Authorization']) {
                         $auth = [string]$bag.Authorization
                         if ($auth -match '(?i)\bBearer\s+(.+)$') {
-                            $script:TelemetryApiKey = $Matches[1].Trim()
-                            return
+                            if (Set-TelemetryApiKey $Matches[1]) { return }
                         }
                     }
                     if ($bag.PSObject.Properties['AGENTKEY_API_KEY']) {
-                        $script:TelemetryApiKey = ([string]$bag.AGENTKEY_API_KEY).Trim()
-                        return
+                        if (Set-TelemetryApiKey $bag.AGENTKEY_API_KEY) { return }
                     }
                 }
             } catch {}
@@ -140,9 +146,9 @@ function Send-UninstallTelemetry {
                 if ($line -match '^\s*\[[^\]]+\]\s*$') { $inBlock = $false }
                 if (-not $inBlock -or $script:TelemetryApiKey) { continue }
                 if ($line -match 'Authorization\s*=\s*"Bearer\s+([^"]+)"') {
-                    $script:TelemetryApiKey = $Matches[1].Trim()
+                    Set-TelemetryApiKey $Matches[1] | Out-Null
                 } elseif ($line -match 'AGENTKEY_API_KEY\s*=\s*"([^"]+)"') {
-                    $script:TelemetryApiKey = $Matches[1].Trim()
+                    Set-TelemetryApiKey $Matches[1] | Out-Null
                 }
             }
         }

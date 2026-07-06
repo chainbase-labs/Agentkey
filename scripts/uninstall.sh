@@ -102,8 +102,17 @@ toml_configs = [("codex", os.path.join(HOME, ".codex", "config.toml"))]
 api_key = ""
 removed_agents = set()
 
-def remember(agent_id, entry):
+def set_api_key(value):
     global api_key
+    if not isinstance(value, str):
+        return False
+    value = value.strip()
+    if not value.startswith("ak_"):
+        return False
+    api_key = value
+    return True
+
+def remember(agent_id, entry):
     removed_agents.add(agent_id)
     if not isinstance(entry, dict) or api_key:
         return
@@ -114,12 +123,10 @@ def remember(agent_id, entry):
         auth = bag.get("Authorization") or bag.get("authorization")
         if isinstance(auth, str):
             m = re.search(r"\bBearer\s+(.+)$", auth.strip(), re.I)
-            if m:
-                api_key = m.group(1).strip()
+            if m and set_api_key(m.group(1)):
                 return
         val = bag.get("AGENTKEY_API_KEY")
-        if isinstance(val, str) and val:
-            api_key = val.strip()
+        if set_api_key(val):
             return
 
 def walk_json(agent_id, node):
@@ -159,7 +166,7 @@ for agent_id, path in toml_configs:
                 if not m:
                     m = re.search(r'AGENTKEY_API_KEY\s*=\s*"([^"]+)"', line)
                 if m:
-                    api_key = m.group(1).strip()
+                    set_api_key(m.group(1))
     except Exception:
         pass
 

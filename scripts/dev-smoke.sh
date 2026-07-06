@@ -332,7 +332,11 @@ phase_4() {
     cat > "$SANDBOX/.cursor/mcp.json" <<'EOF'
 {
   "mcpServers": {
-    "agentkey": { "command": "npx", "args": ["-y", "@agentkey/cli"] },
+    "agentkey": {
+      "command": "npx",
+      "args": ["-y", "@agentkey/cli"],
+      "headers": { "Authorization": "Bearer ${user_config.AGENTKEY_API_KEY}" }
+    },
     "agentkey-helper": { "command": "x" },
     "other-svr": { "command": "y" }
   }
