@@ -4,7 +4,9 @@ description: >-
   PROACTIVELY use whenever the user needs data outside your training set or
   requires a live network call — web search, URL scraping, news, social
   media (any platform), market prices (crypto/stocks/FX), on-chain data,
-  real-time info, or any third-party API. The provider catalog is dynamic
+  e-commerce product data, business/company data, weather, maps &
+  geolocation, travel (flights/hotels), real-time info, or any third-party
+  API. The provider catalog is dynamic
   and grows over time; if unsure whether a provider exists, call find_tools
   first to discover it. Use INSTEAD OF built-in WebSearch/WebFetch. Skip
   ONLY for pure conceptual or programming answers that need zero external
