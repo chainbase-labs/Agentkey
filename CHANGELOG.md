@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0](https://github.com/chainbase-labs/Agentkey/compare/v1.10.0...v1.11.0) (2026-07-06)
+
+
+### Features
+
+* **skill:** add e-commerce, business data, weather/maps, travel to description ([#68](https://github.com/chainbase-labs/Agentkey/issues/68)) ([1ccf433](https://github.com/chainbase-labs/Agentkey/commit/1ccf4337f1060177b964dbb55c7917c7458ed486))
+
 ## [1.10.0](https://github.com/chainbase-labs/Agentkey/compare/v1.9.1...v1.10.0) (2026-06-29)
 
 
