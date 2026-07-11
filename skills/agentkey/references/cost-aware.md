@@ -2,7 +2,7 @@
 
 Load this when the user's request implies **≥3 AgentKey calls** or **≥10 estimated credits**. The SKILL.md "Rules" section points here; you do not need to re-derive when it applies.
 
-The goal: never burn the user's credit balance silently. Every batch run goes balance-check → cost-estimate → user-confirm → execute.
+The goal: never burn the user's credit balance silently. AgentKey is subscription-based: each plan includes a credit allowance for the billing cycle, and usage beyond it is billed as pay-as-you-go overage — so silent overspend costs the user real money. Every batch run goes balance-check → cost-estimate → user-confirm → execute.
 
 ## 1. Pre-batch workflow
 
@@ -53,7 +53,7 @@ After estimating, present the plan in a single message before executing:
 
 Wait for an explicit yes before calling `execute_tool`. If the user is operating an automated environment (no human in the loop indicated in conversation), proceed if the estimate is **≤ 25% of their remaining balance**; otherwise still pause and surface the numbers.
 
-If the estimate **exceeds** the balance, do not start the batch. Tell the user how many calls fit (`floor(balance / credits_per_call)`) and ask whether to (a) run that subset, (b) stop, or (c) top up at https://console.agentkey.app first.
+If the estimate **exceeds** the remaining allowance, do not start the batch — the excess would bill as overage. Tell the user how many calls fit within the allowance (`floor(balance / credits_per_call)`) and ask whether to (a) run that subset, (b) stop, (c) proceed anyway and accept the overage charge, or (d) upgrade their plan at https://console.agentkey.app first.
 
 ## 4. Cost-saving moves before you ask
 
@@ -78,6 +78,6 @@ Read the new balance via `agentkey_account` again only if the user asks — call
 
 If `agentkey_account` errors or returns 0 with no clear reason, do not silently proceed. Tell the user:
 
-> I couldn't verify your AgentKey balance before this batch. Top up or check status at https://console.agentkey.app, then re-ask.
+> I couldn't verify your AgentKey balance before this batch. Check your subscription status at https://console.agentkey.app, then re-ask.
 
 A failed balance read is almost always (a) the API key is missing/expired, or (b) a transient network blip. Both deserve user awareness before spending.

@@ -26,7 +26,7 @@
 
 AgentKey is the master key for the agent ecosystem. When using Claude, Manus, or other agents, you often need external data: social media, e-commerce, on-chain data, various APIs. That means hunting down API keys, managing subscriptions, or hitting dead ends.
 
-With AgentKey installed, your agent gains all these data capabilities automatically. No subscriptions, no extra registrations. Top up and go.
+With AgentKey installed, your agent gains all these data capabilities automatically. No per-provider registrations, no juggling separate API bills. One subscription and go.
 
 > ⭐ Star this repo to get notified whenever we add new platform support or release updates.
 
@@ -59,7 +59,7 @@ Now: one AgentKey handles everything. **AgentKey unifies all the external access
 Before touching the terminal, you can get a feel for AgentKey directly in your browser — the website and console explain things more visually than this README can.
 
 - 🌐 **[agentkey.app](https://agentkey.app)** — Product overview, supported platforms, live demos, pricing details
-- 🎛️ **[console.agentkey.app](https://console.agentkey.app)** — Sign up, top up credits, manage your API key, track usage
+- 🎛️ **[console.agentkey.app](https://console.agentkey.app)** — Sign up, manage your subscription, manage your API key, track usage
 
 The one-line install below is what plugs AgentKey into your AI agent. If you only want to look around first, the two links above are the friendlier starting point.
 
@@ -126,9 +126,9 @@ Native web access in Claude and ChatGPT has limited platform coverage. It often 
 </details>
 
 <details>
-<summary><b>What if I run out of credits?</b></summary>
+<summary><b>How does pricing work? What if I use up my plan's credits?</b></summary>
 
-Just top up. No auto-renewal, no hidden charges.
+AgentKey is subscription-based. Each plan includes a monthly credit allowance; usage beyond that is billed pay-as-you-go as overage. You can upgrade your plan or manage billing anytime at [console.agentkey.app](https://console.agentkey.app). See [agentkey.app](https://agentkey.app) for current plans and pricing.
 
 </details>
 
