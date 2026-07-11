@@ -87,7 +87,7 @@ Try first, guide if needed. Never ask about API keys before executing.
 | Error | Action |
 |-------|--------|
 | `Authentication failed` | "API key invalid. Get a new one at https://console.agentkey.app/" |
-| `Insufficient credits` | "Credits exhausted. Top up at https://console.agentkey.app/" |
+| `Insufficient credits` | "Your plan's credits are exhausted. Upgrade your subscription or manage billing at https://console.agentkey.app/" |
 | `Rate limited` | "Rate limited. Wait a moment and try again." |
 | `not_found` | Report to user. Do NOT retry with guessed IDs. |
 | Missing required param | Fix params using the `suggestion` field and retry once. |
