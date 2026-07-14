@@ -20,6 +20,10 @@
   <a href="https://console.agentkey.app"><img src="https://img.shields.io/badge/Console-console.agentkey.app-7c3aed?style=for-the-badge" alt="Console" /></a>
 </p>
 
+<p align="center">
+  <a href="https://www.producthunt.com/products/agentkey?embed=true&amp;utm_source=badge-top-post-badge&amp;utm_medium=badge&amp;utm_campaign=badge-agentkey" target="_blank" rel="noopener noreferrer"><img alt="AgentKey - One-stop live data marketplace for your agent | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=1192591&amp;theme=light&amp;period=daily&amp;t=1784013858323"></a>
+</p>
+
 ---
 
 **安装 AgentKey，让你的 AI 拥有超能力**
