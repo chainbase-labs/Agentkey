@@ -388,4 +388,6 @@ agentkey/
 
 ---
 
-[![Star History Chart](https://api.star-history.com/svg?repos=chainbase-labs/agentkey&type=Date)](https://www.star-history.com/?repos=chainbase-labs%2Fagentkey&type=date&legend=top-left)
+## Star 历史
+
+[![Star History Chart](https://api.star-history.com/chart?repos=chainbase-labs/agentkey&type=date&legend=top-left&sealed_token=ZnduG_kCABo_uyUn3A-CRWKj9wC9AMGIDCpvu5PSfSvwKtE9Ab_5PEJNjQoQafwEYOlWr4Ioq_n7wC8vNwlwRMQ-BIz0VmBMNZq0aY-KYlH9S2i_29q9fw)](https://www.star-history.com/?repos=chainbase-labs%2Fagentkey&type=date&legend=top-left)
