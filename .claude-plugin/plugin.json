@@ -1,6 +1,6 @@
 {
   "name": "agentkey",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "AgentKey — one-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel through a single MCP server. No API keys to manage, auto failover across providers, free to start.",
   "author": {
     "name": "Chainbase Labs",

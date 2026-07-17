@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0](https://github.com/chainbase-labs/Agentkey/compare/v1.11.0...v1.12.0) (2026-07-17)
+
+
+### Features
+
+* **plugin:** add Codex plugin support ([#73](https://github.com/chainbase-labs/Agentkey/issues/73)) ([7133166](https://github.com/chainbase-labs/Agentkey/commit/71331667a36fa9fed0f107c590500493353fb783))
+
 ## [1.11.0](https://github.com/chainbase-labs/Agentkey/compare/v1.10.0...v1.11.0) (2026-07-06)
 
 
