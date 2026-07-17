@@ -1,0 +1,20 @@
+{
+  "name": "agentkey",
+  "interface": {
+    "displayName": "AgentKey"
+  },
+  "plugins": [
+    {
+      "name": "agentkey",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Data & Analytics"
+    }
+  ]
+}

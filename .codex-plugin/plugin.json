@@ -1,0 +1,42 @@
+{
+  "name": "agentkey",
+  "version": "1.11.0",
+  "description": "AgentKey — one-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel through a single MCP server. No API keys to manage, auto failover across providers, free to start.",
+  "author": {
+    "name": "Chainbase Labs",
+    "url": "https://agentkey.app"
+  },
+  "repository": "https://github.com/chainbase-labs/agentkey",
+  "license": "MIT",
+  "keywords": [
+    "agentkey",
+    "web-search",
+    "scraping",
+    "social-media",
+    "finance",
+    "crypto",
+    "blockchain",
+    "e-commerce",
+    "business-data",
+    "weather",
+    "maps",
+    "travel",
+    "real-time-data"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.codex-plugin/mcp.json",
+  "interface": {
+    "displayName": "AgentKey",
+    "shortDescription": "One-stop live data marketplace for your agent",
+    "longDescription": "AgentKey connects your agent to live external data through a single MCP server — web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel — with no per-provider API integrations or key management. Providers are vetted and health-monitored, every call carries provenance, and auto failover keeps workflows running. Free to start.",
+    "developerName": "Chainbase Labs",
+    "category": "Data & Analytics",
+    "capabilities": ["Read"],
+    "websiteURL": "https://agentkey.app",
+    "defaultPrompt": [
+      "Search the web and social media for the latest news about a topic",
+      "Get the current price and on-chain activity for a crypto token",
+      "Scrape a URL and summarize its content"
+    ]
+  }
+}

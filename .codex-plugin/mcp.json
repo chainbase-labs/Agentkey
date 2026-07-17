@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agentkey": {
+      "type": "http",
+      "url": "https://api.agentkey.app/v1/mcp"
+    }
+  }
+}

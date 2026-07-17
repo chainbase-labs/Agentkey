@@ -16,6 +16,11 @@
           "jsonpath": "$.version"
         },
         {
+          "type": "json",
+          "path": ".codex-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
           "type": "generic",
           "path": "skills/agentkey/scripts/check-update.sh"
         },
