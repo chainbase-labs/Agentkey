@@ -1,6 +1,6 @@
 {
   "name": "agentkey",
-  "description": "Unified API for real-time external data: web search, social media, crypto/blockchain data, and web scraping",
+  "description": "One-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel",
   "owner": {
     "name": "Chainbase Labs",
     "url": "https://agentkey.app"
@@ -8,11 +8,11 @@
   "plugins": [
     {
       "name": "agentkey",
-      "description": "AgentKey — unified API for real-time external data: web search, social media (Twitter, Reddit, 小红书, Instagram, 知乎, TikTok, 抖音, B站, 微博, Threads, YouTube, LinkedIn), crypto/blockchain data, and web scraping",
+      "description": "AgentKey — one-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel through a single MCP server. No API keys to manage, auto failover across providers, free to start.",
       "source": "./",
       "category": "data",
       "homepage": "https://github.com/chainbase-labs/agentkey",
-      "tags": ["agentkey", "web-search", "social-media", "crypto", "blockchain", "real-time-data", "scraping"]
+      "tags": ["agentkey", "web-search", "scraping", "social-media", "finance", "crypto", "blockchain", "e-commerce", "business-data", "weather", "maps", "travel", "real-time-data"]
     }
   ]
 }

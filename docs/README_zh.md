@@ -353,12 +353,27 @@ claude plugin install agentkey@agentkey
 
 启用时 Claude Code 会提示填 `AGENTKEY_API_KEY`（存进系统钥匙串），并通过 `${user_config.AGENTKEY_API_KEY}` 注入插件的 `.mcp.json`。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 skills CLI 最快；插件路径是给 Claude Code 用户的一步到位选项。
 
+**Codex 插件模式** —— 从本仓库自带的 marketplace 安装。认证走 OAuth（安装时浏览器登录），**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+
+```bash
+# 公开安装
+codex plugin marketplace add chainbase-labs/agentkey
+# 然后在 Codex 里运行 /plugins 安装 AgentKey，
+# 或者：codex plugin install agentkey@agentkey
+```
+
+插件清单在 `.codex-plugin/plugin.json`；它捆绑了同一个 Skill，外加一条远程 HTTP MCP 配置（`.codex-plugin/mcp.json`），通过 MCP OAuth（RFC 9728 自动发现）对 `https://api.agentkey.app/v1/mcp` 做认证。Codex 提示时用你的 AgentKey 账号登录即可。
+
 **仓库结构：**
 
 ```
 agentkey/
 ├── .claude-plugin/plugin.json   # Claude Code 插件清单
-├── .mcp.json                    # 作为插件安装时使用
+├── .codex-plugin/
+│   ├── plugin.json              # Codex 插件清单
+│   └── mcp.json                 # Codex MCP 配置（OAuth，无 user_config）
+├── .agents/plugins/marketplace.json  # Codex marketplace（本仓库即自己的 marketplace）
+├── .mcp.json                    # 作为 Claude Code 插件安装时使用
 ├── skills/agentkey/
 │   ├── SKILL.md                 # 决策树 & 路由规则
 │   ├── scripts/                 # check-update 辅助脚本

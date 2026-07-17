@@ -353,12 +353,27 @@ claude plugin install agentkey@agentkey
 
 On enable, Claude Code prompts for `AGENTKEY_API_KEY` (stored in your OS keychain) and injects it into the plugin's `.mcp.json` via `${user_config.AGENTKEY_API_KEY}`. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day skill iteration is still fastest via the skills-CLI path; the plugin path is the one-step option for Claude Code users.
 
+**Codex plugin mode** — install from the marketplace bundled in this repo. Auth is OAuth (browser sign-in on install), so there's **no API key to paste and no second `@agentkey/cli` step**:
+
+```bash
+# Public install
+codex plugin marketplace add chainbase-labs/agentkey
+# then run /plugins inside Codex and install AgentKey,
+# or: codex plugin install agentkey@agentkey
+```
+
+The plugin manifest lives in `.codex-plugin/plugin.json`; it bundles the same skill plus a remote-HTTP MCP entry (`.codex-plugin/mcp.json`) that authenticates against `https://api.agentkey.app/v1/mcp` via MCP OAuth (RFC 9728 discovery). Sign in with your AgentKey account when Codex prompts you.
+
 **Repo layout:**
 
 ```
 agentkey/
 ├── .claude-plugin/plugin.json   # Claude Code plugin manifest
-├── .mcp.json                    # Used when installed as a plugin
+├── .codex-plugin/
+│   ├── plugin.json              # Codex plugin manifest
+│   └── mcp.json                 # Codex MCP entry (OAuth, no user_config)
+├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
+├── .mcp.json                    # Used when installed as a Claude Code plugin
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules
 │   ├── scripts/                 # check-update helper

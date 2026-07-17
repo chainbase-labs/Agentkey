@@ -19,3 +19,4 @@ cli/.vitest/
 # Claude Code workflow artifacts (internal, not shipped publicly)
 docs/superpowers/
 RELEASE_NOTES.md
+.claude/worktrees/
