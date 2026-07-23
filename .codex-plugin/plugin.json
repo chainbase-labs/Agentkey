@@ -34,9 +34,11 @@
     "capabilities": ["Read"],
     "websiteURL": "https://agentkey.app",
     "defaultPrompt": [
-      "Search the web and social media for the latest news about a topic",
-      "Get the current price and on-chain activity for a crypto token",
-      "Scrape a URL and summarize its content"
+      "Use AgentKey to search and summarize trending Reddit content about AI office tools from the past 7 days, then give me 5 content angles suitable for a newsletter or short-form video.",
+      "Use AgentKey to search Instagram for trending posts about yoga mats from the past 3 days, and analyze the topic, hook, and format of 5 high-engagement posts.",
+      "Use AgentKey with Yahoo Finance and Google News to analyze the market reaction to NVIDIA's latest earnings report, and explain what drove the stock price move.",
+      "Use AgentKey to search Taobao, JD, and 1688 for Huaqiangbei Bluetooth earbuds, and compare price ranges and user reviews.",
+      "Use AgentKey to find GitHub projects that have trended in the past 30 days, and summarize 3–5 high-star repos: what they do, star count, and which agent use cases they fit."
     ]
   }
 }
