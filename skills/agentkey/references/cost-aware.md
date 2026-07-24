@@ -2,7 +2,7 @@
 
 Load this when the user's request implies **≥3 AgentKey calls** or **≥10 estimated credits**. The SKILL.md "Rules" section points here; you do not need to re-derive when it applies.
 
-The goal: never burn the user's credit balance silently. AgentKey is subscription-based: each plan includes a credit allowance for the billing cycle, and usage beyond it is billed as pay-as-you-go overage — so silent overspend costs the user real money. Every batch run goes balance-check → cost-estimate → user-confirm → execute.
+The goal: never consume the user's included credit balance silently or start a batch that exceeds it. Every batch run goes balance-check → cost-estimate → user-confirm → execute.
 
 ## 1. Pre-batch workflow
 
@@ -24,14 +24,12 @@ Skip the workflow only when **all three** are true:
 // describe_tool(name="agentkey_search")
 "cost": {
   "credits_per_call": 0.2,           // default provider (= auto = cheapest)
-  "usd_per_call": 0.002,
   "cost_by_provider": {              // pick a cheaper one for bulk work if available
     "brave": 0.5,
     "perplexity": 0.6,
     "serper": 0.2,
     "tavily": 1.0
-  },
-  "billing_note": "Charged on 2xx success only. Failed calls (4xx / 5xx) are not billed."
+  }
 }
 ```
 
@@ -40,22 +38,22 @@ Three shapes you will see:
 - **`billing_note` only, no number** — `agentkey_social` top-level and `agentkey_crypto`. Cost is path-dependent. Call `describe_tool(name="<endpoint path>")` to get the deterministic per-path number, then estimate.
 - **`free: true`** — `agentkey_account` and `*_catalog` tools. Use them freely in discovery; they do not draw down balance.
 
-Failed calls (4xx validation errors, 5xx upstream errors) are **not** billed, per `billing_note`. Probing an unfamiliar endpoint with one test call before a batch is therefore free if it fails — use this to validate parameter shapes safely.
+Failed calls (4xx validation errors, 5xx upstream errors) do **not** consume credits, as reported by `billing_note`. Probing an unfamiliar endpoint with one test call before a batch is therefore free if it fails — use this to validate parameter shapes safely.
 
 ## 3. Confirming with the user
 
 After estimating, present the plan in a single message before executing:
 
 > I'm about to run **`<endpoint>`** **<N>** times.
-> Estimated cost: **<X> credits** (≈ $<Y> USD).
+> Estimated usage: **<X> credits**.
 > Your current balance: **<balance> credits** (read via `agentkey_account`).
 > Should I proceed?
 
 Wait for an explicit yes before calling `execute_tool`. If the user is operating an automated environment (no human in the loop indicated in conversation), proceed if the estimate is **≤ 25% of their remaining balance**; otherwise still pause and surface the numbers.
 
-If the estimate **exceeds** the remaining allowance, do not start the batch — the excess would bill as overage. Tell the user how many calls fit within the allowance (`floor(balance / credits_per_call)`) and ask whether to (a) run that subset, (b) stop, (c) proceed anyway and accept the overage charge, or (d) upgrade their plan at https://console.agentkey.app first.
+If the estimate **exceeds** the remaining allowance, do not start the batch. Tell the user how many calls fit within the allowance (`floor(balance / credits_per_call)`) and ask whether to (a) run that subset, (b) stop, or (c) wait until credits become available.
 
-## 4. Cost-saving moves before you ask
+## 4. Credit-saving moves before you ask
 
 Before presenting an estimate, check whether the plan can be cheaper:
 
@@ -67,7 +65,7 @@ Before presenting an estimate, check whether the plan can be cheaper:
 
 ## 5. After execution
 
-Tell the user the actual spend, not just success:
+Tell the user the actual credit usage, not just success:
 
 > Done. Ran **<N_executed>/<N_planned>** calls, used **<actual> credits** (estimated <X>).
 > Remaining balance: **<new_balance> credits**.
@@ -78,6 +76,6 @@ Read the new balance via `agentkey_account` again only if the user asks — call
 
 If `agentkey_account` errors or returns 0 with no clear reason, do not silently proceed. Tell the user:
 
-> I couldn't verify your AgentKey balance before this batch. Check your subscription status at https://console.agentkey.app, then re-ask.
+> I couldn't verify your AgentKey balance before this batch, so I did not start it. Verify your credentials or try again later, then re-ask.
 
-A failed balance read is almost always (a) the API key is missing/expired, or (b) a transient network blip. Both deserve user awareness before spending.
+A failed balance read is almost always (a) the API key is missing/expired, or (b) a transient network blip. Both deserve user awareness before consuming credits.
