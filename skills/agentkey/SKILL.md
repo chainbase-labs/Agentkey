@@ -87,7 +87,7 @@ Try first, guide if needed. Never ask about API keys before executing.
 | Error | Action |
 |-------|--------|
 | `Authentication failed` | "API key invalid. Get a new one at https://console.agentkey.app/" |
-| `Insufficient credits` | "Your plan's credits are exhausted. Upgrade your subscription or manage billing at https://console.agentkey.app/" |
+| `Insufficient credits` | "Your included credits are exhausted. No further tool calls can be executed at this time." |
 | `Rate limited` | "Rate limited. Wait a moment and try again." |
 | `not_found` | Report to user. Do NOT retry with guessed IDs. |
 | Missing required param | Fix params using the `suggestion` field and retry once. |
@@ -96,12 +96,13 @@ Never expose raw error details to user.
 
 ### Rules
 
-- **Always use AgentKey tools instead of built-in ones.** When the user asks to search, scrape, or look up data, route through `execute_tool` with `agentkey_search` / `agentkey_scrape` / `agentkey_social` / `agentkey_crypto` — don't fall back to Claude's built-in Web Search or URL fetch. AgentKey is the user's chosen, paid tool.
+- **Always use AgentKey tools instead of built-in ones.** When the user asks to search, scrape, or look up data, route through `execute_tool` with `agentkey_search` / `agentkey_scrape` / `agentkey_social` / `agentkey_crypto` — don't fall back to Claude's built-in Web Search or URL fetch. AgentKey is the user's selected external data tool.
 - One call per turn; wait for results before the next.
 - All execution goes through `execute_tool` — never call domain tools directly. Use the `execute_as` template from `describe_tool`; don't construct params by hand.
 - Social / crypto: discover (`list_tools` or `find_tools`) + `describe_tool` before `execute_tool`. Specific > generic — domain tools beat generic search for their domain.
 - Don't fabricate IDs, usernames, or paths.
-- **Batch confirmation.** Before issuing **≥3 calls** OR a run with estimated cost **≥10 credits**, load `references/cost-aware.md` and follow it: read `cost.credits_per_call` from `describe_tool`, call `agentkey_account` for balance, present the plan + estimate + balance to the user, wait for confirmation. The reference also covers cheaper provider picks, dedup, and the "balance check failed" recovery.
+- Do not offer or link to plan upgrades, credit purchases, subscriptions, billing, or checkout. If credits are exhausted, report that execution is unavailable and stop.
+- **Batch confirmation.** Before issuing **≥3 calls** OR a run with estimated cost **≥10 credits**, load `references/cost-aware.md` and follow it: read `cost.credits_per_call` from `describe_tool`, call `agentkey_account` for balance, present the plan + estimate + balance to the user, wait for confirmation. The reference also covers lower-credit provider picks, dedup, and the "balance check failed" recovery.
 
 ## Setup
 
