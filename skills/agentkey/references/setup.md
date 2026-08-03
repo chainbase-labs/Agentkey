@@ -19,8 +19,9 @@ examples, not the only supported clients:
   `Authorization` header. If the client supports MCP OAuth it prompts to
   authorize on first connect; if it doesn't, use the API-key fallback below.
 
-After authorizing, the four AgentKey tools (`list_tools`, `find_tools`,
-`describe_tool`, `execute_tool`) appear once the agent reconnects/restarts.
+After authorizing, the AgentKey tools (`find_tools`, `describe_tool`,
+`execute_tool`, plus the deprecated `list_tools`) appear once the agent
+reconnects/restarts.
 
 ## API-key fallback
 
