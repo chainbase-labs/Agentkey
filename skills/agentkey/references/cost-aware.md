@@ -2,63 +2,70 @@
 
 Load this when the user's request implies **≥3 AgentKey calls** or **≥10 estimated credits**. The SKILL.md "Rules" section points here; you do not need to re-derive when it applies.
 
-The goal: never consume the user's included credit balance silently or start a batch that exceeds it. Every batch run goes balance-check → cost-estimate → user-confirm → execute.
+The goal: never consume the user's included credit balance silently or start a batch that exceeds it. Every batch run goes cost-estimate → balance-check → user-confirm → execute.
 
 ## 1. Pre-batch workflow
 
 ```
-agentkey_account()                   # 1. read remaining balance (free, no charge)
-describe_tool(name=<target>)         # 2. read cost.credits_per_call
-                                     # 3. estimate total = credits_per_call × N
-                                     # 4. confirm with user, then execute
+find_tools(q=<the task>)                    # 1. per-call cost is already in the result
+describe_tool(name=<chosen tool>)           # 2. confirm cost + params before committing
+execute_tool(name="agentkey_account")       # 3. read remaining balance (free, no charge)
+                                            # 4. estimate total = cost × N
+                                            # 5. confirm with the user, then execute
 ```
+
+`find_tools` returns a `cost` field on every match, so you can compare offerings and do the multiplication **before** spending a `describe_tool` round-trip. Use `describe_tool` to confirm the number and get the params for the tool you actually picked.
 
 Skip the workflow only when **all three** are true:
 - The request is a single call.
-- The single call's `cost.credits_per_call ≤ 1`.
+- That call's cost is **≤ 1 credit**.
 - The user explicitly asked you to "just run it" / "don't ask".
 
-## 2. Reading `describe_tool`'s cost field
+## 2. Reading the cost fields
+
+`find_tools` — one number per match, in credits per call:
 
 ```jsonc
-// describe_tool(name="agentkey_search")
+{ "name": "<Provider>/<Operation>", "summary": "…", "cost": 0.2, "score": 0.71 }
+```
+
+`describe_tool` — the same figure plus the per-provider breakdown:
+
+```jsonc
 "cost": {
-  "credits_per_call": 0.2,           // default provider (= auto = cheapest)
-  "cost_by_provider": {              // pick a cheaper one for bulk work if available
-    "brave": 0.5,
-    "perplexity": 0.6,
-    "serper": 0.2,
-    "tavily": 1.0
-  }
+  "credits_per_call": 0.2,              // what this tool charges
+  "cost_by_provider": { "<vendor>": 0.2 },
+  "billing_note": "…"                   // failed calls are not billed
 }
 ```
 
-Three shapes you will see:
-- **Single number + provider map** — search / scrape. Multiply `credits_per_call × N` for a baseline; switch providers for cheaper bulk runs.
-- **`billing_note` only, no number** — `agentkey_social` top-level and `agentkey_crypto`. Cost is path-dependent. Call `describe_tool(name="<endpoint path>")` to get the deterministic per-path number, then estimate.
-- **`free: true`** — `agentkey_account` and `*_catalog` tools. Use them freely in discovery; they do not draw down balance.
+Two shapes you will see:
+- **A number** — the normal case. Multiply `credits_per_call × N` for the batch estimate.
+- **`billing_note` only, no number** — cost is route-dependent. Call `describe_tool` on the specific tool (not a category path) to get a deterministic number, then estimate.
 
-Failed calls (4xx validation errors, 5xx upstream errors) do **not** consume credits, as reported by `billing_note`. Probing an unfamiliar endpoint with one test call before a batch is therefore free if it fails — use this to validate parameter shapes safely.
+`execute_tool(name="agentkey_account")` is free and draws down nothing.
+
+Failed calls (4xx validation errors, 5xx upstream errors) do **not** consume credits. Probing an unfamiliar tool with one test call before a batch is therefore free if it fails — use this to validate parameter shapes safely.
 
 ## 3. Confirming with the user
 
 After estimating, present the plan in a single message before executing:
 
-> I'm about to run **`<endpoint>`** **<N>** times.
+> I'm about to run **`<tool>`** **<N>** times.
 > Estimated usage: **<X> credits**.
-> Your current balance: **<balance> credits** (read via `agentkey_account`).
+> Your current balance: **<balance> credits**.
 > Should I proceed?
 
 Wait for an explicit yes before calling `execute_tool`. If the user is operating an automated environment (no human in the loop indicated in conversation), proceed if the estimate is **≤ 25% of their remaining balance**; otherwise still pause and surface the numbers.
 
-If the estimate **exceeds** the remaining allowance, do not start the batch. Tell the user how many calls fit within the allowance (`floor(balance / credits_per_call)`) and ask whether to (a) run that subset, (b) stop, or (c) wait until credits become available.
+If the estimate **exceeds** the remaining allowance, do not start the batch. Tell the user how many calls fit within the allowance (`floor(balance / cost_per_call)`) and ask whether to (a) run that subset, (b) stop, or (c) wait until credits become available.
 
 ## 4. Credit-saving moves before you ask
 
 Before presenting an estimate, check whether the plan can be cheaper:
 
-- **Switch provider** when `cost_by_provider` shows a cheaper option that still satisfies the task (e.g. search → serper for bulk; scrape → firecrawl over jina).
-- **Probe first**: one call against the chosen endpoint before the batch confirms the response shape and surfaces parameter errors free-of-charge.
+- **Switch provider.** The same capability is usually served by several vendors at different prices, and `find_tools` returns all of them with their costs. Pick the cheapest one that still satisfies the task.
+- **Probe first**: one call against the chosen tool before the batch confirms the response shape and surfaces parameter errors free-of-charge.
 - **Dedupe inputs**: many bulk asks (resolve 150 user IDs → profile) contain duplicates. Run `set(inputs)` first.
 - **Cache locally**: when the user re-asks the same query in-session, reuse the prior response rather than re-fetching.
 - **Trim N**: many "give me everything about X" requests resolve in 10 calls, not 150. Ask "how many results do you actually want?" if N is huge.
@@ -70,7 +77,7 @@ Tell the user the actual credit usage, not just success:
 > Done. Ran **<N_executed>/<N_planned>** calls, used **<actual> credits** (estimated <X>).
 > Remaining balance: **<new_balance> credits**.
 
-Read the new balance via `agentkey_account` again only if the user asks — calling it once before and once after every batch is wasteful for small runs.
+Re-read the balance via `execute_tool(name="agentkey_account")` only if the user asks — calling it once before and once after every batch is wasteful for small runs.
 
 ## When the balance check itself fails
 
