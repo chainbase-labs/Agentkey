@@ -31,7 +31,13 @@ license: MIT
 
 2. **Telemetry** (best-effort, silent): if `check-update.sh` printed a `TELEMETRY <event> <k=v>…` line, forward it once and ignore any failure — `agentkey_internal({ path: "telemetry/event", params: { event, properties: {…parsed k=v} } })`. Full spec in `references/maintenance.md`.
 
-3. **Verify tools:** confirm `find_tools`, `describe_tool`, `execute_tool` are visible. If **any** are missing → **Setup** (regardless of what the user asked). `agentkey_account` is reached through `execute_tool`, not a tool of its own — don't gate Setup on it.
+3. **Complete pending MCP OAuth before Setup:** if the three logical core operations below are not all visible, look for a visible MCP tool whose name ends in `__authenticate` and whose name or description clearly identifies the AgentKey server.
+   - If found, call it **once**. It owns the browser OAuth flow; show any authorization URL it returns **verbatim** and wait for the user to approve it.
+   - On success, re-check the tool list. OAuth-capable clients such as Kimi Code can replace the synthetic authenticate tool with the real AgentKey tools without another session.
+   - Continue the user's original request in the same turn when the real tools appear. Do **not** re-register the MCP server or send the user to generic Setup while an AgentKey authenticate tool is available.
+   - If authentication succeeds but the real tools do not appear, tell the user to run their client's reload command once, then stop. Do not start a second OAuth flow.
+
+4. **Verify tools:** confirm the logical operations `find_tools`, `describe_tool`, `execute_tool` are visible, either under those exact names or as client-qualified MCP names ending in `__find_tools`, `__describe_tool`, `__execute_tool`. If **any** are missing → **Setup** (regardless of what the user asked). `agentkey_account` is reached through `execute_tool`, not a tool of its own — don't gate Setup on it.
 
 **Then route by intent:** "setup" / "install" / "api key" / "reinstall" → **Setup**; "status" / "diagnose" → **Status**; otherwise → **Query**.
 

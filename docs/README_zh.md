@@ -364,6 +364,22 @@ codex plugin marketplace add chainbase-labs/agentkey
 
 插件清单在 `.codex-plugin/plugin.json`；它捆绑了同一个 Skill，外加一条远程 HTTP MCP 配置（`.codex-plugin/mcp.json`），通过 MCP OAuth（RFC 9728 自动发现）对 `https://api.agentkey.app/v1/mcp` 做认证。Codex 提示时用你的 AgentKey 账号登录即可。
 
+**Kimi Code 插件模式** —— 直接在 Kimi Code 中安装本仓库。插件清单同时捆绑 Skill 和内联的远程 HTTP MCP 配置，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+
+```text
+# 公开安装
+/plugins install https://github.com/chainbase-labs/agentkey
+
+# 或从本地 checkout 安装，用于开发
+/plugins install /absolute/path/to/agentkey
+```
+
+安装成功后 Kimi 会显示 `Run /new or /reload to apply plugin changes.`。执行 `/reload` 后，直接提出原本的 AgentKey 查询即可。首次使用时，Skill 会识别 Kimi 暴露的 AgentKey OAuth 鉴权工具，发起浏览器授权，并在用户同意后继续原查询；通常不再需要手动执行 `/mcp-config login agentkey`。
+
+Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后，需要重新执行 `/plugins install /absolute/path/to/agentkey`，再执行一次 `/reload`。
+
+如果你曾为旧版 AgentKey plugin 手工通过 `/mcp-config` 添加过用户全局的 `agentkey` 条目，请在 reload 前执行一次 `/mcp-config remove agentkey` 删除旧条目。现在 plugin 会维护自己的命名空间 MCP；同时保留两份会造成工具和鉴权流程重复。
+
 **仓库结构：**
 
 ```
@@ -372,6 +388,8 @@ agentkey/
 ├── .codex-plugin/
 │   ├── plugin.json              # Codex 插件清单
 │   └── mcp.json                 # Codex MCP 配置（OAuth，无 user_config）
+├── .kimi-plugin/
+│   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
 ├── .agents/plugins/marketplace.json  # Codex marketplace（本仓库即自己的 marketplace）
 ├── .mcp.json                    # 作为 Claude Code 插件安装时使用
 ├── skills/agentkey/
@@ -385,7 +403,7 @@ agentkey/
     └── uninstall.ps1            # Windows PowerShell 卸载脚本
 ```
 
-**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、`plugin.json`、`CHANGELOG.md`。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
+**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、三个插件清单和 `CHANGELOG.md`。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
 
 </details>
 
