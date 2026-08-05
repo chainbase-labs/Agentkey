@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0](https://github.com/chainbase-labs/Agentkey/compare/v1.12.1...v1.13.0) (2026-08-05)
+
+
+### Features
+
+* improve Kimi plugin onboarding ([#86](https://github.com/chainbase-labs/Agentkey/issues/86)) ([db38a59](https://github.com/chainbase-labs/Agentkey/commit/db38a59d7b5b50afd2f85baed4bffe71dc347854))
+* **skill:** rebuild discovery around find_tools ([#84](https://github.com/chainbase-labs/Agentkey/issues/84)) ([9891ed5](https://github.com/chainbase-labs/Agentkey/commit/9891ed5deecb8f30f9ac07ef8cdb53c788c977ee))
+
 ## [1.12.1](https://github.com/chainbase-labs/Agentkey/compare/v1.12.0...v1.12.1) (2026-07-24)
 
 
