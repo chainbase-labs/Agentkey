@@ -374,7 +374,7 @@ codex plugin marketplace add chainbase-labs/agentkey
 /plugins install /absolute/path/to/agentkey
 ```
 
-安装成功后 Kimi 会显示 `Run /new or /reload to apply plugin changes.`。执行 `/reload` 后，直接提出原本的 AgentKey 查询即可。首次使用时，Skill 会识别 Kimi 暴露的 AgentKey OAuth 鉴权工具，发起浏览器授权，并在用户同意后继续原查询；通常不再需要手动执行 `/mcp-config login agentkey`。
+安装成功后 Kimi 会显示 `Run /new or /reload to apply plugin changes.`。执行 `/reload`；当 Kimi 提示插件 MCP 需要 OAuth 时，执行 `/mcp-config login plugin-agentkey:agentkey` 并在浏览器完成授权，之后即可提出原本的 AgentKey 查询。
 
 Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后，需要重新执行 `/plugins install /absolute/path/to/agentkey`，再执行一次 `/reload`。
 

@@ -374,7 +374,7 @@ The plugin manifest lives in `.codex-plugin/plugin.json`; it bundles the same sk
 /plugins install /absolute/path/to/agentkey
 ```
 
-Kimi shows `Run /new or /reload to apply plugin changes.` after installation. Run `/reload`, then ask your original AgentKey question. On first use, the skill detects Kimi's pending AgentKey OAuth tool, opens the browser authorization flow, and continues the request after approval; you normally do not need to run `/mcp-config login agentkey` yourself.
+Kimi shows `Run /new or /reload to apply plugin changes.` after installation. Run `/reload`; when Kimi reports that the plugin MCP server needs OAuth, run `/mcp-config login plugin-agentkey:agentkey` and approve the browser authorization. You can then ask your original AgentKey question.
 
 Kimi copies local plugins into its managed plugin directory. Re-run `/plugins install /absolute/path/to/agentkey` after editing the checkout, then run `/reload` again.
 
