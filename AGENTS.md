@@ -17,6 +17,7 @@ The same repo also works as:
 
 - a **Claude Code plugin** (`.claude-plugin/plugin.json` + root `.mcp.json`) — the plugin's `userConfig` injects the API key via `${user_config.AGENTKEY_API_KEY}`, substituting for step 2.
 - a **Codex plugin** (`.codex-plugin/plugin.json` + `.codex-plugin/mcp.json`, distributed through `.agents/plugins/marketplace.json`; the repo is its own marketplace: `codex plugin marketplace add chainbase-labs/agentkey`). Codex plugins have no `userConfig`/header-interpolation mechanism, so auth uses MCP OAuth via the server's RFC 9728 metadata discovery (`type` + `url` only in mcp.json), substituting for step 2.
+- a **Kimi Code plugin** (`.kimi-plugin/plugin.json`). Kimi requires `mcpServers` to be an inline object in the manifest. The remote AgentKey endpoint uses Kimi's native MCP OAuth flow; after install Kimi shows the standard `/reload` hint, then the user signs in with `/mcp-config login plugin-agentkey:agentkey` when Kimi reports that OAuth is required.
 
 ## Directory Structure
 
@@ -26,6 +27,8 @@ agentkey/
 ├── .codex-plugin/
 │   ├── plugin.json              # Codex plugin manifest (skills + mcpServers + interface metadata)
 │   └── mcp.json                 # Codex MCP entry — http + oauth_resource (NOT the root .mcp.json)
+├── .kimi-plugin/
+│   └── plugin.json              # Kimi Code manifest with inline HTTP MCP entry (OAuth)
 ├── .agents/plugins/marketplace.json  # Codex marketplace listing this repo as a local-source plugin
 ├── .mcp.json                    # Auto-registers AgentKey MCP when installed as a Claude Code plugin
 ├── skills/agentkey/
@@ -55,11 +58,11 @@ git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z
 gh release delete vX.Y.Z --repo chainbase-labs/agentkey --yes
 ```
 
-Releases are driven by [release-please](https://github.com/googleapis/release-please): merged PRs with Conventional Commit messages (`feat:`, `fix:`, `feat!:`, etc.) update an open Release PR that bumps `skills/agentkey/version.txt`, both plugin manifest versions, and `CHANGELOG.md`. Merging the Release PR tags the release and creates the GitHub Release, which in turn triggers plugin updates for users.
+Releases are driven by [release-please](https://github.com/googleapis/release-please): merged PRs with Conventional Commit messages (`feat:`, `fix:`, `feat!:`, etc.) update an open Release PR that bumps `skills/agentkey/version.txt`, all three plugin manifest versions, and `CHANGELOG.md`. Merging the Release PR tags the release and creates the GitHub Release, which in turn triggers plugin updates for users.
 
 ## Version & Release Rules
 
-- `skills/agentkey/version.txt`, `.claude-plugin/plugin.json` version, `.codex-plugin/plugin.json` version, and `CHANGELOG.md` are managed by release-please based on Conventional Commits — never edit manually except via PR that intentionally amends them.
+- `skills/agentkey/version.txt`, the versions in `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, and `.kimi-plugin/plugin.json`, plus `CHANGELOG.md`, are managed by release-please based on Conventional Commits — never edit manually except via PR that intentionally amends them.
 - `version.txt` lives inside `skills/agentkey/` (not at repo root) so it travels with the skill when the Skills CLI copies the subdirectory. `release-please-config.json` points at this path via `version-file`.
 - Tag format: `v` prefix (e.g. `v0.4.5`)
 - Plugin updates trigger on **GitHub Release** publication, not on plain commits
@@ -67,8 +70,8 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 
 ## Change Checklists
 
-**Changes to either `plugin.json`:**
-- release-please automatically bumps both manifest versions + `CHANGELOG.md` from merged conventional-commit PRs; maintainers review + merge the generated Release PR rather than editing these files directly
+**Changes to any `plugin.json`:**
+- release-please automatically bumps all three manifest versions + `CHANGELOG.md` from merged conventional-commit PRs; maintainers review + merge the generated Release PR rather than editing these files directly
 
 **Changes to the root `.mcp.json` (Claude Code plugin path):**
 - The MCP server is `type: http` (remote endpoint, no subprocess), so inject the API key by interpolating the userConfig value as `${user_config.AGENTKEY_API_KEY}` in the `Authorization` header — the key name MUST match the `.claude-plugin/plugin.json` `userConfig` key. Do NOT use `${CLAUDE_PLUGIN_OPTION_<KEY>}`: those env vars are only exported to stdio/subprocess servers and hook/monitor commands, and are not interpolated into an http server's headers.
@@ -78,6 +81,13 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Codex plugin MCP config does NOT support `${user_config.*}` interpolation — a literal `${…}` would be sent as the Authorization header. Auth is MCP OAuth via RFC 9728 discovery: the server's 401 advertises `resource_metadata`, and the rmcp client automatically appends `resource=<server url>` to the authorization request.
 - Do NOT set `oauth_resource`: rmcp already sends `resource` on its own, and Codex appends `oauth_resource` as a *second* `resource` query param without deduplication (`codex-rs/rmcp-client/src/perform_oauth_login.rs`). Clerk enforces RFC 6749 (no repeated params) and rejects the request with `invalid_request: The request includes the parameter 'resource' more than once`. The official Notion/Figma plugins get away with it only because their authorization servers tolerate duplicates.
 - Keep the endpoint URL in sync with the root `.mcp.json` — both must point at the same `/v1/mcp` endpoint.
+
+**Changes to `.kimi-plugin/plugin.json` (Kimi Code plugin path):**
+- `mcpServers` MUST be an inline object. Kimi does not accept a path such as `"./mcp.json"` for this field.
+- Keep the HTTP entry minimal: `{"agentkey":{"url":"https://api.agentkey.app/v1/mcp"}}`. Kimi infers the transport from `url`.
+- Do not add `userConfig`, a static Authorization header, or `${user_config.*}` interpolation. Kimi discovers and persists MCP OAuth credentials itself.
+- Kimi displays `Run /new or /reload to apply plugin changes.` after install. Once reloaded, the user completes native MCP OAuth with `/mcp-config login plugin-agentkey:agentkey` when Kimi reports that authentication is required.
+- Keep the endpoint URL in sync with the root `.mcp.json` and `.codex-plugin/mcp.json`.
 
 **Changes to install/uninstall docs:**
 - Update both `README.md` and `docs/README_zh.md` together — they mirror each other
@@ -90,4 +100,5 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - `@agentkey/cli --auth-login` auto-writes MCP configs for 16 agents (canonical list lives in `AGENT_REGISTRY` in `../AgentKey-Server/cli/src/lib/mcp-clients.ts`): Claude Code, Claude Desktop, Cursor, Codex, Gemini CLI, OpenCode, Qwen Code, iFlow CLI, Kimi CLI, Kiro CLI, Windsurf, Warp, Amp, Crush, droid, openclaw. The `--only <ids>` flag (used by install.sh's `MCP_TARGETS` and install.ps1's `$McpTargets`) filters this list — its id values MUST match `npx skills add -a` ids, with `claude-desktop` as the one documented MCP-only exception. Goose / kode / kilo still need a manual JSON paste (see SKILL.md's "Fallback" section); when adding more agents server-side, keep `MCP_AUTO_AGENTS` in both install scripts and the cleanup list in both uninstall scripts in sync.
 - Root `.mcp.json` registers the remote-HTTP MCP endpoint (`https://api.agentkey.app/v1/mcp`) in Claude Code plugin mode; the API key flows from plugin userConfig into the `Authorization: Bearer ${user_config.AGENTKEY_API_KEY}` header (no stdio binary is launched)
 - `.codex-plugin/mcp.json` registers the same endpoint in Codex plugin mode, authenticated via MCP OAuth (RFC 9728 discovery; no `oauth_resource` — see checklist above)
+- `.kimi-plugin/plugin.json` registers the same endpoint inline in Kimi Code plugin mode. After reloading, the user starts Kimi's native MCP OAuth flow with `/mcp-config login plugin-agentkey:agentkey`.
 - `README.md` / `docs/README_zh.md` are the public-facing docs; keep them in sync with any structural changes

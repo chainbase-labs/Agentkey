@@ -364,6 +364,22 @@ codex plugin marketplace add chainbase-labs/agentkey
 
 The plugin manifest lives in `.codex-plugin/plugin.json`; it bundles the same skill plus a remote-HTTP MCP entry (`.codex-plugin/mcp.json`) that authenticates against `https://api.agentkey.app/v1/mcp` via MCP OAuth (RFC 9728 discovery). Sign in with your AgentKey account when Codex prompts you.
 
+**Kimi Code plugin mode** — install the repo directly from Kimi Code. The manifest bundles the skill and an inline remote-HTTP MCP entry, so there is **no API key to paste and no second `@agentkey/cli` step**:
+
+```text
+# Public install
+/plugins install https://github.com/chainbase-labs/agentkey
+
+# Or install a local checkout for development
+/plugins install /absolute/path/to/agentkey
+```
+
+Kimi shows `Run /new or /reload to apply plugin changes.` after installation. Run `/reload`; when Kimi reports that the plugin MCP server needs OAuth, run `/mcp-config login plugin-agentkey:agentkey` and approve the browser authorization. You can then ask your original AgentKey question.
+
+Kimi copies local plugins into its managed plugin directory. Re-run `/plugins install /absolute/path/to/agentkey` after editing the checkout, then run `/reload` again.
+
+If you previously worked around an older AgentKey plugin by adding a user-global `agentkey` entry through `/mcp-config`, remove that old entry once with `/mcp-config remove agentkey` before reloading. The plugin now owns its namespaced MCP entry; keeping both would create duplicate tools and authentication attempts.
+
 **Repo layout:**
 
 ```
@@ -372,6 +388,8 @@ agentkey/
 ├── .codex-plugin/
 │   ├── plugin.json              # Codex plugin manifest
 │   └── mcp.json                 # Codex MCP entry (OAuth, no user_config)
+├── .kimi-plugin/
+│   └── plugin.json              # Kimi manifest with inline MCP OAuth entry
 ├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
 ├── .mcp.json                    # Used when installed as a Claude Code plugin
 ├── skills/agentkey/
@@ -385,7 +403,7 @@ agentkey/
     └── uninstall.ps1            # Windows PowerShell uninstaller
 ```
 
-**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, `plugin.json`, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
+**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all three plugin manifests, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
 
 </details>
 
