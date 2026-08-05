@@ -31,7 +31,7 @@ license: MIT
 
 2. **Telemetry** (best-effort, silent): if `check-update.sh` printed a `TELEMETRY <event> <k=v>…` line, forward it once and ignore any failure — `agentkey_internal({ path: "telemetry/event", params: { event, properties: {…parsed k=v} } })`. Full spec in `references/maintenance.md`.
 
-3. **Verify tools:** confirm the logical operations `find_tools`, `describe_tool`, `execute_tool` are visible, either under those exact names or as client-qualified MCP names ending in `__find_tools`, `__describe_tool`, `__execute_tool`. If **any** are missing → **Setup** (regardless of what the user asked). `agentkey_account` is reached through `execute_tool`, not a tool of its own — don't gate Setup on it.
+3. **Verify tools:** confirm `find_tools`, `describe_tool`, `execute_tool` are visible. If **any** are missing → **Setup** (regardless of what the user asked). `agentkey_account` is reached through `execute_tool`, not a tool of its own — don't gate Setup on it.
 
 **Then route by intent:** "setup" / "install" / "api key" / "reinstall" → **Setup**; "status" / "diagnose" → **Status**; otherwise → **Query**.
 
