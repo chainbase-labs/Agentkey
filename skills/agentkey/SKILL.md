@@ -8,7 +8,7 @@ description: >-
   (flights/hotels). The provider catalog is dynamic and grows over time;
   if unsure whether a provider exists, call find_tools first to discover
   it. Not needed for conceptual, code, or local-file work.
-version: 1.13.0 # x-release-please-version
+version: 1.13.1 # x-release-please-version
 author: Chainbase Labs
 homepage: https://agentkey.app
 repository: https://github.com/chainbase-labs/agentkey
