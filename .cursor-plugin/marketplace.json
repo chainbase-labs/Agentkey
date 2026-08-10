@@ -1,9 +1,10 @@
 {
   "name": "agentkey",
-  "description": "One-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel",
   "owner": {
-    "name": "Chainbase Labs",
-    "url": "https://agentkey.app"
+    "name": "Chainbase Labs"
+  },
+  "metadata": {
+    "description": "One-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel"
   },
   "plugins": [
     {
