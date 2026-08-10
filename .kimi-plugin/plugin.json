@@ -3,10 +3,9 @@
   "version": "1.13.1",
   "description": "AgentKey — one-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel through a single MCP server. No API keys to manage, auto failover across providers, free to start.",
   "author": {
-    "name": "Chainbase Labs",
-    "url": "https://agentkey.app"
+    "name": "Chainbase Labs"
   },
-  "repository": "https://github.com/chainbase-labs/agentkey",
+  "homepage": "https://agentkey.app",
   "license": "MIT",
   "keywords": [
     "agentkey",
@@ -24,23 +23,16 @@
     "real-time-data"
   ],
   "skills": "./skills/",
-  "mcpServers": "./.codex-plugin/mcp.json",
+  "mcpServers": {
+    "agentkey": {
+      "url": "https://api.agentkey.app/v1/mcp"
+    }
+  },
   "interface": {
     "displayName": "AgentKey",
     "shortDescription": "One-stop live data marketplace for your agent",
     "longDescription": "AgentKey connects your agent to live external data through a single MCP server — web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel — with no per-provider API integrations or key management. Providers are vetted and health-monitored, every call carries provenance, and auto failover keeps workflows running. Free to start.",
     "developerName": "Chainbase Labs",
-    "category": "Data & Analytics",
-    "capabilities": [
-      "Read"
-    ],
-    "websiteURL": "https://agentkey.app",
-    "defaultPrompt": [
-      "Use AgentKey to search and summarize trending Reddit content about AI office tools from the past 7 days, then give me 5 content angles suitable for a newsletter or short-form video.",
-      "Use AgentKey to search Instagram for trending posts about yoga mats from the past 3 days, and analyze the topic, hook, and format of 5 high-engagement posts.",
-      "Use AgentKey with Yahoo Finance and Google News to analyze the market reaction to NVIDIA's latest earnings report, and explain what drove the stock price move.",
-      "Use AgentKey to search Taobao, JD, and 1688 for Huaqiangbei Bluetooth earbuds, and compare price ranges and user reviews.",
-      "Use AgentKey to find GitHub projects that have trended in the past 30 days, and summarize 3–5 high-star repos: what they do, star count, and which agent use cases they fit."
-    ]
+    "websiteURL": "https://agentkey.app"
   }
 }

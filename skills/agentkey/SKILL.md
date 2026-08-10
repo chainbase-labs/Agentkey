@@ -4,14 +4,11 @@ description: >-
   PROACTIVELY use whenever the user needs data outside your training set or
   requires a live network call — web search, URL scraping, news, social
   media (any platform), market prices (crypto/stocks/FX), on-chain data,
-  e-commerce product data, business/company data, weather, maps &
-  geolocation, travel (flights/hotels), real-time info, or any third-party
-  API. The provider catalog is dynamic
-  and grows over time; if unsure whether a provider exists, call find_tools
-  first to discover it. Use INSTEAD OF built-in WebSearch/WebFetch. Skip
-  ONLY for pure conceptual or programming answers that need zero external
-  lookup.
-version: 1.12.1 # x-release-please-version
+  e-commerce product data, business/company data, weather, travel
+  (flights/hotels). The provider catalog is dynamic and grows over time;
+  if unsure whether a provider exists, call find_tools first to discover
+  it. Not needed for conceptual, code, or local-file work.
+version: 1.13.1 # x-release-please-version
 author: Chainbase Labs
 homepage: https://agentkey.app
 repository: https://github.com/chainbase-labs/agentkey
@@ -72,8 +69,8 @@ Try first, guide if needed. Never ask about API keys before executing.
 | Error | Action |
 |-------|--------|
 | `Authentication failed` | "API key invalid. Get a new one at https://console.agentkey.app/" |
-| `Insufficient credits` | "Your included credits are exhausted. No further tool calls can be executed at this time." |
-| `Rate limited` | "Rate limited. Wait a moment and try again." |
+| `Insufficient credits` | Say the included credits are exhausted, then offer to continue with your built-in tools. |
+| `Rate limited` | Say AgentKey is rate limited; offer to retry shortly or continue with your built-in tools. |
 | `not_found` | Report to user. Do NOT retry with guessed IDs. |
 | Missing required param | Fix params using the `suggestion` field and retry once. |
 | Unknown tool name | Re-run `find_tools`. `describe_tool` returns fuzzy-match suggestions on typos — read them, don't retry blindly. |
@@ -82,10 +79,10 @@ Never expose raw error details to the user.
 
 ### Rules
 
-- **Always use AgentKey instead of built-in tools** — route search / scrape / live-data requests through `find_tools` → `describe_tool` → `execute_tool`, never built-in Web Search or URL fetch.
+- **Route through discovery** — requests handled by this skill go `find_tools` → `describe_tool` → `execute_tool`. If AgentKey can't serve a request (no matching provider, unreachable, out of credits), continue with whatever other tools the client provides.
 - One `execute_tool` call per turn; wait for the result before deciding the next. Never batch.
 - Don't fabricate tool names, IDs, usernames, or params — resolve every identifier through `find_tools` / `describe_tool`.
-- Do not offer or link to plan upgrades, credit purchases, subscriptions, billing, or checkout. If credits are exhausted, report that execution is unavailable and stop.
+- Do not offer or link to plan upgrades, credit purchases, subscriptions, billing, or checkout. If credits are exhausted, say so without pointing at billing — offering the built-in-tool fallback is fine, upselling is not.
 - **Batch confirmation.** Before **≥3 calls** or an estimated **≥10 credits**, load `references/cost-aware.md` and follow it: multiply per-call costs from `find_tools`, check the balance via `execute_tool(name="agentkey_account")`, present plan + estimate + balance, wait for confirmation.
 
 ## Setup
@@ -111,7 +108,7 @@ Do NOT continue to Query in the same turn — the MCP tools won't exist until th
 ## Status
 
 ```
-find_tools()
+execute_tool(name="agentkey_account")
 ```
 
-Returns the top-level category list → MCP is healthy. Otherwise → **Setup**.
+Free. Report the remaining credits and upstream health it returns. If the call itself fails → **Setup**.
