@@ -14,6 +14,9 @@ on:
       - '.claude-plugin/plugin.json'
       - '.codex-plugin/plugin.json'
       - '.cursor-plugin/plugin.json'
+      - 'plugins/agentkey/.cursor-plugin/plugin.json'
+      - 'plugins/agentkey/skills/agentkey/scripts/check-update.sh'
+      - 'plugins/agentkey/skills/agentkey/SKILL.md'
       - '.kimi-plugin/plugin.json'
       - 'gemini-extension.json'
       - 'release-please-config.json'
@@ -25,6 +28,9 @@ on:
       - '.claude-plugin/plugin.json'
       - '.codex-plugin/plugin.json'
       - '.cursor-plugin/plugin.json'
+      - 'plugins/agentkey/.cursor-plugin/plugin.json'
+      - 'plugins/agentkey/skills/agentkey/scripts/check-update.sh'
+      - 'plugins/agentkey/skills/agentkey/SKILL.md'
       - '.kimi-plugin/plugin.json'
       - 'gemini-extension.json'
       - 'release-please-config.json'
@@ -43,24 +49,34 @@ jobs:
           claude_plugin=$(python3 -c 'import json; print(json.load(open(".claude-plugin/plugin.json"))["version"])')
           codex_plugin=$(python3 -c 'import json; print(json.load(open(".codex-plugin/plugin.json"))["version"])')
           cursor_plugin=$(python3 -c 'import json; print(json.load(open(".cursor-plugin/plugin.json"))["version"])')
+          cursor_marketplace_plugin=$(python3 -c 'import json; print(json.load(open("plugins/agentkey/.cursor-plugin/plugin.json"))["version"])')
+          cursor_marketplace_script=$(grep -E '^LOCAL_VERSION="[^"]+"' plugins/agentkey/skills/agentkey/scripts/check-update.sh \
+                                      | head -1 | sed -E 's/^LOCAL_VERSION="([^"]+)".*/\1/')
           kimi_plugin=$(python3 -c 'import json; print(json.load(open(".kimi-plugin/plugin.json"))["version"])')
           gemini_extension=$(python3 -c 'import json; print(json.load(open("gemini-extension.json"))["version"])')
           skill=$(awk '/^---/{c++; next} c==1 && /^version:/{print $2; exit}' skills/agentkey/SKILL.md)
+          cursor_marketplace_skill=$(awk '/^---/{c++; next} c==1 && /^version:/{print $2; exit}' plugins/agentkey/skills/agentkey/SKILL.md)
           echo "version.txt:        $canonical"
           echo "check-update.sh:    $script"
           echo "Claude plugin:      $claude_plugin"
           echo "Codex plugin:       $codex_plugin"
           echo "Cursor plugin:      $cursor_plugin"
+          echo "Cursor marketplace: $cursor_marketplace_plugin"
+          echo "Cursor MP script:   $cursor_marketplace_script"
           echo "Kimi plugin:        $kimi_plugin"
           echo "Gemini extension:   $gemini_extension"
           echo "SKILL.md:           $skill"
+          echo "Cursor MP SKILL.md: $cursor_marketplace_skill"
           if [ "$canonical" != "$script" ] \
              || [ "$canonical" != "$claude_plugin" ] \
              || [ "$canonical" != "$codex_plugin" ] \
              || [ "$canonical" != "$cursor_plugin" ] \
+             || [ "$canonical" != "$cursor_marketplace_plugin" ] \
+             || [ "$canonical" != "$cursor_marketplace_script" ] \
              || [ "$canonical" != "$kimi_plugin" ] \
              || [ "$canonical" != "$gemini_extension" ] \
-             || [ "$canonical" != "$skill" ]; then
-            echo "::error::Version drift detected. release-please syncs all eight values from version.txt — re-run release-please or restore the values manually."
+             || [ "$canonical" != "$skill" ] \
+             || [ "$canonical" != "$cursor_marketplace_skill" ]; then
+            echo "::error::Version drift detected. release-please syncs all eleven values from version.txt — re-run release-please or restore the values manually."
             exit 1
           fi

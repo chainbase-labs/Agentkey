@@ -9,7 +9,7 @@
     {
       "name": "agentkey",
       "description": "AgentKey — one-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel through a single MCP server. No API keys to manage, auto failover across providers, free to start.",
-      "source": "./",
+      "source": "./plugins/agentkey",
       "category": "data",
       "homepage": "https://github.com/chainbase-labs/agentkey",
       "tags": ["agentkey", "web-search", "scraping", "social-media", "finance", "crypto", "blockchain", "e-commerce", "business-data", "weather", "maps", "travel", "real-time-data"]

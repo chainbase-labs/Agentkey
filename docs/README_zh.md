@@ -382,7 +382,9 @@ Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后�
 
 **Cursor 插件模式** —— 插件上架后，从 Cursor Marketplace 安装 AgentKey。`.cursor-plugin/plugin.json` 这个 Cursor 原生清单会同时捆绑同一个 Skill 和内联的远程 HTTP MCP 配置，因此**不用粘贴 API Key，也不需要再单独运行 `@agentkey/cli`**。Cursor 提示 MCP 需要认证时，在浏览器完成 AgentKey 登录即可。
 
-维护者需要先把插件推送到公开 Git 仓库，再到 [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish) 提交仓库地址。提交前请使用当前版本 Cursor 实际安装测试，确认 OAuth 完成后 `agentkey` Skill 和 MCP server 都能正常加载。清单遵循 [Cursor 插件参考](https://cursor.com/cn/docs/reference/plugins)，其中所有组件路径都必须相对于插件根目录。
+如果使用 Cursor Team Marketplace，直接导入本仓库地址即可。`.cursor-plugin/marketplace.json` 会把 AgentKey 映射到仓库内真实存在的 `./plugins/agentkey` 插件目录；Cursor 的 marketplace loader 不会安装 external-source 条目。这个嵌套分发包与根目录 Cursor 清单及标准 Skill 保持同步，并由测试阻止漂移。默认分支更新后，请在 Cursor Settings 中刷新 marketplace；导入结果是索引快照，只有手动刷新或自动刷新后才会更新。
+
+如果发布到公开 Cursor Marketplace，请到 [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish) 提交公开仓库地址。提交前请使用当前版本 Cursor 实际安装测试，确认 OAuth 完成后 `agentkey` Skill 和 MCP server 都能正常加载。两个清单均遵循 [Cursor 插件参考](https://cursor.com/cn/docs/reference/plugins)，插件的组件路径必须相对于插件根目录。
 
 **Gemini CLI 扩展模式** —— 把本仓库直接安装为 extension。根目录的 `gemini-extension.json` 会捆绑现有 AgentKey skill 和远程 Streamable HTTP MCP server，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
@@ -426,6 +428,7 @@ agentkey/
 │   ├── plugin.json              # Codex 插件清单
 │   └── mcp.json                 # Codex MCP 配置（OAuth，无 user_config）
 ├── .cursor-plugin/
+│   ├── marketplace.json         # Cursor Team Marketplace 条目（本地 plugins/agentkey source）
 │   └── plugin.json              # Cursor 清单，捆绑 Skill 与内联 MCP OAuth
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
@@ -434,6 +437,9 @@ agentkey/
 ├── gemini-extension.json        # Gemini CLI 扩展清单（MCP OAuth + skills）
 ├── plugin.json                  # Antigravity 桌面端/CLI 插件清单
 ├── mcp_config.json              # Antigravity 远程 MCP 配置（serverUrl + OAuth）
+├── plugins/agentkey/            # Cursor Team Marketplace 分发包
+│   ├── .cursor-plugin/plugin.json
+│   └── skills/agentkey/         # 标准 Skill 的同步副本
 ├── skills/agentkey/
 │   ├── SKILL.md                 # 决策树 & 路由规则
 │   ├── scripts/                 # check-update 辅助脚本
@@ -442,10 +448,11 @@ agentkey/
     ├── install.sh               # 一键安装脚本（mac/linux）
     ├── install.ps1              # Windows PowerShell 安装脚本
     ├── uninstall.sh             # 一键卸载脚本（mac/linux）
-    └── uninstall.ps1            # Windows PowerShell 卸载脚本
+    ├── uninstall.ps1            # Windows PowerShell 卸载脚本
+    └── sync-cursor-marketplace-plugin.sh  # 刷新嵌套 Cursor Skill 副本
 ```
 
-**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、四个带版本号的插件清单、`gemini-extension.json` 和 `CHANGELOG.md`。Antigravity schema 没有 `version` 字段，因此根目录 `plugin.json` 不参与版本同步。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
+**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、四个客户端插件清单以及 Cursor Team Marketplace 的清单副本、`gemini-extension.json` 和 `CHANGELOG.md`。Antigravity schema 没有 `version` 字段，因此根目录 `plugin.json` 不参与版本同步。修改标准 Skill 后请运行 `scripts/sync-cursor-marketplace-plugin.sh`；CI 会拒绝嵌套 Cursor 分发包发生漂移。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
 
 </details>
 

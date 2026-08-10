@@ -2,7 +2,10 @@ name: Scripts tests
 on:
   push:
     paths:
-      - 'skills/agentkey/scripts/**'
+      - 'skills/agentkey/**'
+      - '.cursor-plugin/marketplace.json'
+      - '.cursor-plugin/plugin.json'
+      - 'plugins/agentkey/**'
       - 'gemini-extension.json'
       - 'plugin.json'
       - 'mcp_config.json'
@@ -10,7 +13,10 @@ on:
       - '.github/workflows/scripts-test.yml'
   pull_request:
     paths:
-      - 'skills/agentkey/scripts/**'
+      - 'skills/agentkey/**'
+      - '.cursor-plugin/marketplace.json'
+      - '.cursor-plugin/plugin.json'
+      - 'plugins/agentkey/**'
       - 'gemini-extension.json'
       - 'plugin.json'
       - 'mcp_config.json'

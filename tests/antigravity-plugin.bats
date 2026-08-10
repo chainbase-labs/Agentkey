@@ -84,6 +84,7 @@ configs = {
     "claude": (".mcp.json", "url"),
     "codex": (".codex-plugin/mcp.json", "url"),
     "cursor": (".cursor-plugin/plugin.json", "url"),
+    "cursor_marketplace": ("plugins/agentkey/.cursor-plugin/plugin.json", "url"),
     "kimi": (".kimi-plugin/plugin.json", "url"),
     "gemini": ("gemini-extension.json", "httpUrl"),
     "antigravity": ("mcp_config.json", "serverUrl"),
