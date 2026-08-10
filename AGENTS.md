@@ -20,6 +20,7 @@ The same repo also works as:
 - a **Cursor plugin** (`.cursor-plugin/plugin.json`). The Cursor-native manifest bundles `skills/` and an inline remote-HTTP MCP entry. Cursor authenticates through the server's MCP OAuth discovery, substituting for step 2.
 - a **Kimi Code plugin** (`.kimi-plugin/plugin.json`). Kimi requires `mcpServers` to be an inline object in the manifest. The remote AgentKey endpoint uses Kimi's native MCP OAuth flow; after install Kimi shows the standard `/reload` hint, then the user signs in with `/mcp-config login plugin-agentkey:agentkey` when Kimi reports that OAuth is required.
 - a **Gemini CLI extension** (root `gemini-extension.json` + `skills/`). Gemini requires the manifest at the extension root, discovers bundled agent skills automatically, and connects to AgentKey with `httpUrl` plus native MCP OAuth discovery. `/mcp auth agentkey` substitutes for step 2.
+- an **Antigravity 2.0 and Antigravity CLI plugin** (root `plugin.json` + `mcp_config.json` + `skills/`). Both runtimes use the same package, require `serverUrl` for remote MCP, and authenticate through automatic OAuth discovery.
 
 ## Directory Structure
 
@@ -36,6 +37,8 @@ agentkey/
 ├── .agents/plugins/marketplace.json  # Codex marketplace listing this repo as a local-source plugin
 ├── .mcp.json                    # Auto-registers AgentKey MCP when installed as a Claude Code plugin
 ├── gemini-extension.json        # Gemini CLI extension — Streamable HTTP + OAuth discovery
+├── plugin.json                  # Antigravity desktop/CLI plugin marker
+├── mcp_config.json              # Antigravity remote MCP entry — serverUrl + OAuth discovery
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules (end-user facing)
 │   ├── scripts/                 # check-update helper
@@ -63,7 +66,7 @@ git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z
 gh release delete vX.Y.Z --repo chainbase-labs/agentkey --yes
 ```
 
-Releases are driven by [release-please](https://github.com/googleapis/release-please): merged PRs with Conventional Commit messages (`feat:`, `fix:`, `feat!:`, etc.) update an open Release PR that bumps `skills/agentkey/version.txt`, all four plugin manifest versions, `gemini-extension.json`, and `CHANGELOG.md`. Merging the Release PR tags the release and creates the GitHub Release, which in turn triggers plugin updates for users.
+Releases are driven by [release-please](https://github.com/googleapis/release-please): merged PRs with Conventional Commit messages (`feat:`, `fix:`, `feat!:`, etc.) update an open Release PR that bumps `skills/agentkey/version.txt`, all four versioned plugin manifest versions, `gemini-extension.json`, and `CHANGELOG.md`. The Antigravity manifest has no version field. Merging the Release PR tags the release and creates the GitHub Release, which in turn triggers plugin updates for users.
 
 ## Version & Release Rules
 
@@ -108,6 +111,13 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Do not duplicate `skills/agentkey/` or add an always-loaded `GEMINI.md`; Gemini discovers the existing skill automatically.
 - Keep the endpoint URL in sync with `.mcp.json`, `.codex-plugin/mcp.json`, `.cursor-plugin/plugin.json`, and `.kimi-plugin/plugin.json`.
 
+**Changes to root `plugin.json` / `mcp_config.json` (Antigravity plugin path):**
+- Keep both files at the repository root so Antigravity 2.0 and Antigravity CLI share one plugin package and reuse `skills/agentkey/` without duplication.
+- Keep `plugin.json` limited to the documented `$schema`, `name`, and `description` fields. The Antigravity schema has no `version` field, so release-please must not add one.
+- Keep `mcpServers.agentkey` inline in `mcp_config.json` and use `serverUrl`; legacy `url` and `httpUrl` fields are unsupported.
+- Do not add static credentials, headers, or manual OAuth client secrets. AgentKey supports dynamic client registration, so Antigravity performs automatic OAuth discovery.
+- Keep the endpoint URL in sync with `.mcp.json`, `.codex-plugin/mcp.json`, `.cursor-plugin/plugin.json`, `.kimi-plugin/plugin.json`, and `gemini-extension.json`.
+
 **Changes to install/uninstall docs:**
 - Update both `README.md` and `docs/README_zh.md` together — they mirror each other
 - The canonical install is always the two-command sequence (`npx skills add …` + `npx -y @agentkey/cli --auth-login`). Don't imply either command does both.
@@ -122,4 +132,5 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - `.cursor-plugin/plugin.json` registers the same endpoint inline in Cursor plugin mode, authenticated through Cursor's native MCP OAuth flow
 - `.kimi-plugin/plugin.json` registers the same endpoint inline in Kimi Code plugin mode. After reloading, the user starts Kimi's native MCP OAuth flow with `/mcp-config login plugin-agentkey:agentkey`.
 - `gemini-extension.json` registers the same endpoint through `httpUrl` in Gemini CLI extension mode. Gemini discovers the existing `skills/agentkey/` tree and authenticates through `/mcp auth agentkey`.
+- Root `plugin.json` and `mcp_config.json` package the existing skill and the same endpoint for both Antigravity 2.0 and Antigravity CLI; remote MCP uses `serverUrl` and automatic OAuth discovery.
 - `README.md` / `docs/README_zh.md` are the public-facing docs; keep them in sync with any structural changes

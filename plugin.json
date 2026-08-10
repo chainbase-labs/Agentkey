@@ -1,0 +1,5 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "agentkey",
+  "description": "AgentKey gives Antigravity one-stop access to live web, social, finance, crypto, e-commerce, business, weather, maps, and travel data."
+}

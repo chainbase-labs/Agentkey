@@ -4,12 +4,16 @@ on:
     paths:
       - 'skills/agentkey/scripts/**'
       - 'gemini-extension.json'
+      - 'plugin.json'
+      - 'mcp_config.json'
       - 'tests/**'
       - '.github/workflows/scripts-test.yml'
   pull_request:
     paths:
       - 'skills/agentkey/scripts/**'
       - 'gemini-extension.json'
+      - 'plugin.json'
+      - 'mcp_config.json'
       - 'tests/**'
 
 jobs:

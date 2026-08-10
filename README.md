@@ -396,6 +396,27 @@ gemini extensions link /absolute/path/to/agentkey
 
 Restart Gemini CLI after installing or linking. If the MCP server requires authentication, run `/mcp auth agentkey` and approve the browser authorization; Gemini then stores and refreshes the OAuth tokens. Use `/mcp reload` after changing the server configuration.
 
+**Antigravity 2.0 / Antigravity CLI plugin mode** — both runtimes use the root `plugin.json`, `mcp_config.json`, and existing `skills/` directory. The MCP entry uses Antigravity's `serverUrl` schema and automatic OAuth discovery, so there is **no API key to paste and no second `@agentkey/cli` step**.
+
+For Antigravity 2.0, place the repository at workspace scope or global scope, then restart Antigravity:
+
+```bash
+# Workspace scope
+git clone https://github.com/chainbase-labs/agentkey.git /path/to/workspace/.agents/plugins/agentkey
+
+# Or global scope
+git clone https://github.com/chainbase-labs/agentkey.git ~/.gemini/config/plugins/agentkey
+```
+
+For Antigravity CLI, install a local checkout and verify it is registered:
+
+```bash
+agy plugin install /absolute/path/to/agentkey
+agy plugin list
+```
+
+Antigravity 2.0 exposes OAuth through **Settings → Customizations → Authenticate**. In Antigravity CLI, open `/mcp` to inspect or reload the server and follow the authentication prompt when it first connects.
+
 **Repo layout:**
 
 ```
@@ -411,6 +432,8 @@ agentkey/
 ├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
 ├── .mcp.json                    # Used when installed as a Claude Code plugin
 ├── gemini-extension.json        # Gemini CLI extension manifest (MCP OAuth + skills)
+├── plugin.json                  # Antigravity desktop/CLI plugin manifest
+├── mcp_config.json              # Antigravity remote MCP entry (serverUrl + OAuth)
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules
 │   ├── scripts/                 # check-update helper
@@ -422,7 +445,7 @@ agentkey/
     └── uninstall.ps1            # Windows PowerShell uninstaller
 ```
 
-**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all four plugin manifests, `gemini-extension.json`, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
+**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all four versioned plugin manifests, `gemini-extension.json`, and `CHANGELOG.md`. The Antigravity schema has no `version` field, so its root `plugin.json` is not part of version syncing. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
 
 </details>
 
