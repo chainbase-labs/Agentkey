@@ -380,6 +380,10 @@ Kimi copies local plugins into its managed plugin directory. Re-run `/plugins in
 
 If you previously worked around an older AgentKey plugin by adding a user-global `agentkey` entry through `/mcp-config`, remove that old entry once with `/mcp-config remove agentkey` before reloading. The plugin now owns its namespaced MCP entry; keeping both would create duplicate tools and authentication attempts.
 
+**Cursor plugin mode** — install AgentKey from the Cursor Marketplace after the listing is published. The Cursor-native manifest at `.cursor-plugin/plugin.json` bundles the same Skill and an inline remote-HTTP MCP entry, so there is **no API key to paste and no second `@agentkey/cli` step**. When Cursor prompts for MCP authentication, approve the AgentKey browser sign-in.
+
+For maintainers, push the plugin to a public Git repository and submit the repository URL at [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Before submitting, test the plugin in the current Cursor release and confirm that both the `agentkey` Skill and MCP server load successfully after OAuth. The manifest follows the [Cursor plugin reference](https://cursor.com/docs/reference/plugins); keep its component paths relative to the plugin root.
+
 **Repo layout:**
 
 ```
@@ -388,6 +392,8 @@ agentkey/
 ├── .codex-plugin/
 │   ├── plugin.json              # Codex plugin manifest
 │   └── mcp.json                 # Codex MCP entry (OAuth, no user_config)
+├── .cursor-plugin/
+│   └── plugin.json              # Cursor manifest with Skill + inline MCP OAuth
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi manifest with inline MCP OAuth entry
 ├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
@@ -403,7 +409,7 @@ agentkey/
     └── uninstall.ps1            # Windows PowerShell uninstaller
 ```
 
-**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all three plugin manifests, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
+**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all four plugin manifests, and `CHANGELOG.md`. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
 
 </details>
 
