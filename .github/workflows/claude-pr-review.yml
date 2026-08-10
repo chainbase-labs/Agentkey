@@ -192,7 +192,8 @@ jobs:
                 from release-please itself, which won't trigger this
                 review since author.type == Bot)
               - `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`,
-                and `.kimi-plugin/plugin.json` version fields — managed
+                `.cursor-plugin/plugin.json`, and `.kimi-plugin/plugin.json`
+                version fields — managed
 
             ### 4c. Repo invariants
               - `skills/agentkey/scripts/check-update.sh` REPO line

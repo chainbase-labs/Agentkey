@@ -380,6 +380,43 @@ Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后�
 
 如果你曾为旧版 AgentKey plugin 手工通过 `/mcp-config` 添加过用户全局的 `agentkey` 条目，请在 reload 前执行一次 `/mcp-config remove agentkey` 删除旧条目。现在 plugin 会维护自己的命名空间 MCP；同时保留两份会造成工具和鉴权流程重复。
 
+**Cursor 插件模式** —— 插件上架后，从 Cursor Marketplace 安装 AgentKey。`.cursor-plugin/plugin.json` 这个 Cursor 原生清单会同时捆绑同一个 Skill 和内联的远程 HTTP MCP 配置，因此**不用粘贴 API Key，也不需要再单独运行 `@agentkey/cli`**。Cursor 提示 MCP 需要认证时，在浏览器完成 AgentKey 登录即可。
+
+维护者需要先把插件推送到公开 Git 仓库，再到 [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish) 提交仓库地址。提交前请使用当前版本 Cursor 实际安装测试，确认 OAuth 完成后 `agentkey` Skill 和 MCP server 都能正常加载。清单遵循 [Cursor 插件参考](https://cursor.com/cn/docs/reference/plugins)，其中所有组件路径都必须相对于插件根目录。
+
+**Gemini CLI 扩展模式** —— 把本仓库直接安装为 extension。根目录的 `gemini-extension.json` 会捆绑现有 AgentKey skill 和远程 Streamable HTTP MCP server，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+
+```bash
+# 公开安装
+gemini extensions install https://github.com/chainbase-labs/agentkey
+
+# 或链接本地 checkout，用于开发
+gemini extensions link /absolute/path/to/agentkey
+```
+
+安装或链接后重启 Gemini CLI。如果 MCP server 提示需要认证，执行 `/mcp auth agentkey` 并在浏览器完成授权；之后 Gemini 会保存并自动刷新 OAuth token。修改 server 配置后可执行 `/mcp reload`。
+
+**Antigravity 2.0 / Antigravity CLI 插件模式** —— 两个运行时共用根目录的 `plugin.json`、`mcp_config.json` 和现有 `skills/`。MCP 配置使用 Antigravity 规定的 `serverUrl` 并依赖自动 OAuth discovery，**不用粘贴 API Key，也不需要再单独运行 `@agentkey/cli`**。
+
+Antigravity 2.0 可按 workspace 或全局范围放置插件，完成后重启 Antigravity：
+
+```bash
+# Workspace 范围
+git clone https://github.com/chainbase-labs/agentkey.git /path/to/workspace/.agents/plugins/agentkey
+
+# 或全局范围
+git clone https://github.com/chainbase-labs/agentkey.git ~/.gemini/config/plugins/agentkey
+```
+
+Antigravity CLI 使用本地 checkout 安装并确认注册结果：
+
+```bash
+agy plugin install /absolute/path/to/agentkey
+agy plugin list
+```
+
+Antigravity 2.0 在 **Settings → Customizations → Authenticate** 中完成 OAuth。Antigravity CLI 首次连接时按认证提示操作；需要检查状态或重新加载 server 时打开 `/mcp`。
+
 **仓库结构：**
 
 ```
@@ -388,10 +425,15 @@ agentkey/
 ├── .codex-plugin/
 │   ├── plugin.json              # Codex 插件清单
 │   └── mcp.json                 # Codex MCP 配置（OAuth，无 user_config）
+├── .cursor-plugin/
+│   └── plugin.json              # Cursor 清单，捆绑 Skill 与内联 MCP OAuth
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
 ├── .agents/plugins/marketplace.json  # Codex marketplace（本仓库即自己的 marketplace）
 ├── .mcp.json                    # 作为 Claude Code 插件安装时使用
+├── gemini-extension.json        # Gemini CLI 扩展清单（MCP OAuth + skills）
+├── plugin.json                  # Antigravity 桌面端/CLI 插件清单
+├── mcp_config.json              # Antigravity 远程 MCP 配置（serverUrl + OAuth）
 ├── skills/agentkey/
 │   ├── SKILL.md                 # 决策树 & 路由规则
 │   ├── scripts/                 # check-update 辅助脚本
@@ -403,7 +445,7 @@ agentkey/
     └── uninstall.ps1            # Windows PowerShell 卸载脚本
 ```
 
-**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、三个插件清单和 `CHANGELOG.md`。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
+**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、四个带版本号的插件清单、`gemini-extension.json` 和 `CHANGELOG.md`。Antigravity schema 没有 `version` 字段，因此根目录 `plugin.json` 不参与版本同步。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
 
 </details>
 

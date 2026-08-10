@@ -1,0 +1,31 @@
+{
+  "name": "agentkey",
+  "version": "1.13.1",
+  "description": "AgentKey — one-stop live data marketplace for your agent: web search, web scraping, social media, finance, crypto, e-commerce, business data, weather/maps, and travel through a single MCP server. No API keys to manage, auto failover across providers, free to start.",
+  "author": {
+    "name": "Chainbase Labs"
+  },
+  "homepage": "https://agentkey.app",
+  "license": "MIT",
+  "keywords": [
+    "agentkey",
+    "web-search",
+    "scraping",
+    "social-media",
+    "finance",
+    "crypto",
+    "blockchain",
+    "e-commerce",
+    "business-data",
+    "weather",
+    "maps",
+    "travel",
+    "real-time-data"
+  ],
+  "skills": "./skills/",
+  "mcpServers": {
+    "agentkey": {
+      "url": "https://api.agentkey.app/v1/mcp"
+    }
+  }
+}
