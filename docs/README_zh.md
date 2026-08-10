@@ -380,6 +380,18 @@ Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后�
 
 如果你曾为旧版 AgentKey plugin 手工通过 `/mcp-config` 添加过用户全局的 `agentkey` 条目，请在 reload 前执行一次 `/mcp-config remove agentkey` 删除旧条目。现在 plugin 会维护自己的命名空间 MCP；同时保留两份会造成工具和鉴权流程重复。
 
+**Gemini CLI 扩展模式** —— 把本仓库直接安装为 extension。根目录的 `gemini-extension.json` 会捆绑现有 AgentKey skill 和远程 Streamable HTTP MCP server，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+
+```bash
+# 公开安装
+gemini extensions install https://github.com/chainbase-labs/agentkey
+
+# 或链接本地 checkout，用于开发
+gemini extensions link /absolute/path/to/agentkey
+```
+
+安装或链接后重启 Gemini CLI。如果 MCP server 提示需要认证，执行 `/mcp auth agentkey` 并在浏览器完成授权；之后 Gemini 会保存并自动刷新 OAuth token。修改 server 配置后可执行 `/mcp reload`。
+
 **仓库结构：**
 
 ```
@@ -392,6 +404,7 @@ agentkey/
 │   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
 ├── .agents/plugins/marketplace.json  # Codex marketplace（本仓库即自己的 marketplace）
 ├── .mcp.json                    # 作为 Claude Code 插件安装时使用
+├── gemini-extension.json        # Gemini CLI 扩展清单（MCP OAuth + skills）
 ├── skills/agentkey/
 │   ├── SKILL.md                 # 决策树 & 路由规则
 │   ├── scripts/                 # check-update 辅助脚本
@@ -403,7 +416,7 @@ agentkey/
     └── uninstall.ps1            # Windows PowerShell 卸载脚本
 ```
 
-**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、三个插件清单和 `CHANGELOG.md`。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
+**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、三个插件清单、`gemini-extension.json` 和 `CHANGELOG.md`。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
 
 </details>
 
