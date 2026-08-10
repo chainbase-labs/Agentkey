@@ -74,3 +74,31 @@ PY
         "$MARKETPLACE_PLUGIN/skills/agentkey"
     [ ! -e "$MARKETPLACE_PLUGIN/skills/agentkey/version.txt" ]
 }
+
+@test "Cursor sync script regenerates the nested manifest and Skill bundle" {
+    fixture="$BATS_TEST_TMPDIR/cursor-sync"
+    mkdir -p \
+        "$fixture/.cursor-plugin" \
+        "$fixture/plugins/agentkey/.cursor-plugin" \
+        "$fixture/plugins/agentkey/skills/agentkey" \
+        "$fixture/scripts" \
+        "$fixture/skills/agentkey/references"
+
+    cp "$ROOT_MANIFEST" "$fixture/.cursor-plugin/plugin.json"
+    cp "$REPO_ROOT/scripts/sync-cursor-marketplace-plugin.sh" "$fixture/scripts/"
+    printf '%s\n' 'canonical Skill' > "$fixture/skills/agentkey/SKILL.md"
+    printf '%s\n' 'canonical reference' > "$fixture/skills/agentkey/references/setup.md"
+    printf '%s\n' '1.2.3' > "$fixture/skills/agentkey/version.txt"
+    printf '%s\n' '{}' > "$fixture/plugins/agentkey/.cursor-plugin/plugin.json"
+    printf '%s\n' 'stale Skill' > "$fixture/plugins/agentkey/skills/agentkey/SKILL.md"
+
+    run bash "$fixture/scripts/sync-cursor-marketplace-plugin.sh"
+
+    [ "$status" -eq 0 ]
+    cmp "$fixture/.cursor-plugin/plugin.json" \
+        "$fixture/plugins/agentkey/.cursor-plugin/plugin.json"
+    diff -ru --exclude version.txt \
+        "$fixture/skills/agentkey" \
+        "$fixture/plugins/agentkey/skills/agentkey"
+    [ ! -e "$fixture/plugins/agentkey/skills/agentkey/version.txt" ]
+}

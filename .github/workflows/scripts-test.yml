@@ -10,6 +10,7 @@ on:
       - 'plugin.json'
       - 'mcp_config.json'
       - 'tests/**'
+      - 'scripts/sync-cursor-marketplace-plugin.sh'
       - '.github/workflows/scripts-test.yml'
   pull_request:
     paths:
@@ -21,6 +22,7 @@ on:
       - 'plugin.json'
       - 'mcp_config.json'
       - 'tests/**'
+      - 'scripts/sync-cursor-marketplace-plugin.sh'
 
 jobs:
   bats:
@@ -30,6 +32,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Verify generated Cursor marketplace package
+        run: |
+          ./scripts/sync-cursor-marketplace-plugin.sh
+          if ! git diff --quiet -- plugins/agentkey; then
+            echo "::error::Cursor marketplace package is stale. Run ./scripts/sync-cursor-marketplace-plugin.sh and commit the generated plugins/agentkey changes."
+            git diff -- plugins/agentkey
+            exit 1
+          fi
       - name: Install bats
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then

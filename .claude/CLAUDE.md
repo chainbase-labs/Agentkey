@@ -17,7 +17,7 @@ The same repo also works as a Claude Code plugin (via `.claude-plugin/plugin.jso
 
 It additionally works as a **Codex plugin** (via `.codex-plugin/plugin.json` + `.codex-plugin/mcp.json`, distributed through `.agents/plugins/marketplace.json` — the repo is its own marketplace, added with `codex plugin marketplace add chainbase-labs/agentkey`). Codex plugins have no `userConfig`/header-interpolation mechanism, so auth uses MCP OAuth instead: the server's `/v1/mcp` endpoint advertises `WWW-Authenticate: Bearer resource_metadata=…` (RFC 9728) and supports dynamic client registration, so `.codex-plugin/mcp.json` needs only `type` + `url` — discovery does the rest. In that mode the OAuth sign-in substitutes for step 2.
 
-It also works as a **Cursor plugin** (`.cursor-plugin/plugin.json`) and **Cursor Team Marketplace** (`.cursor-plugin/marketplace.json`). Team Marketplace indexing requires a repository-local plugin directory, so the marketplace entry resolves to `plugins/agentkey/`; that package mirrors the root Cursor manifest and canonical skill. Cursor authenticates through the server's MCP OAuth discovery, substituting for step 2.
+It also works as a **Cursor plugin** (`.cursor-plugin/plugin.json`) and **Cursor Team Marketplace** (`.cursor-plugin/marketplace.json`). Team Marketplace indexing requires a repository-local plugin directory, so the marketplace entry resolves to the generated `plugins/agentkey/` package. Its manifest and skill come exclusively from the root Cursor manifest and canonical skill. Cursor authenticates through the server's MCP OAuth discovery, substituting for step 2.
 
 It also works as a **Kimi Code plugin** (`.kimi-plugin/plugin.json`). Kimi requires `mcpServers` to be an inline object in the manifest. The remote AgentKey endpoint uses Kimi's native MCP OAuth flow; after install Kimi shows the standard `/reload` hint, then the user signs in with `/mcp-config login plugin-agentkey:agentkey` when Kimi reports that OAuth is required.
 
@@ -43,14 +43,15 @@ agentkey/
 ├── gemini-extension.json        # Gemini CLI extension — Streamable HTTP + OAuth discovery
 ├── plugin.json                  # Antigravity desktop/CLI plugin marker
 ├── mcp_config.json              # Antigravity remote MCP entry — serverUrl + OAuth discovery
-├── plugins/agentkey/            # Repository-local Cursor Team Marketplace package
-│   ├── .cursor-plugin/plugin.json
-│   └── skills/agentkey/         # Synced copy; version.txt intentionally omitted
+├── plugins/agentkey/            # Generated Cursor Team Marketplace package — do not edit directly
+│   ├── .cursor-plugin/plugin.json  # Generated from .cursor-plugin/plugin.json
+│   └── skills/agentkey/         # Generated copy; version.txt intentionally omitted
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules (end-user facing)
 │   ├── scripts/                 # check-update helper
 │   └── version.txt              # Managed by release-please only — must live inside the skill so it survives `npx skills add`
 └── scripts/
+    ├── sync-cursor-marketplace-plugin.sh  # Generates the nested Cursor manifest + skill
     └── uninstall.sh             # End-user cleanup helper
 ```
 
@@ -103,7 +104,7 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Keep `skills` pointed at `./skills/` and `mcpServers` as the minimal inline `{"agentkey":{"url":"https://api.agentkey.app/v1/mcp"}}` entry. Do not add static credentials or `${user_config.*}` interpolation; Cursor handles MCP OAuth itself.
 - Keep the endpoint URL in sync with the root `.mcp.json`, `.codex-plugin/mcp.json`, `.kimi-plugin/plugin.json`, and `gemini-extension.json`.
 - Keep `.cursor-plugin/marketplace.json` for Cursor Team Marketplace imports. Its single entry MUST use the repository-local source `"./plugins/agentkey"`; Cursor local indexing does not install external-source marketplace entries, and the Team importer expects marketplace entries to map to real plugin folders.
-- `plugins/agentkey/.cursor-plugin/plugin.json` MUST remain byte-for-byte identical to the root Cursor manifest. The nested skill is a distribution copy required by Cursor's plugin-root path boundary; after changing `skills/agentkey/`, run `scripts/sync-cursor-marketplace-plugin.sh`. Tests reject manifest or skill drift.
+- Treat `.cursor-plugin/plugin.json` and `skills/agentkey/` as the only sources. Never edit `plugins/agentkey/` directly; `scripts/sync-cursor-marketplace-plugin.sh` regenerates both its nested manifest and skill copy. CI runs the generator and rejects any uncommitted generated diff with the repair command.
 - The nested skill intentionally omits `version.txt`. release-please updates the version markers in both copied `SKILL.md` and `check-update.sh`, plus both Cursor manifests.
 
 **Changes to `.kimi-plugin/plugin.json`:**

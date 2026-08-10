@@ -382,7 +382,9 @@ If you previously worked around an older AgentKey plugin by adding a user-global
 
 **Cursor plugin mode** — install AgentKey from the Cursor Marketplace after the listing is published. The Cursor-native manifest at `.cursor-plugin/plugin.json` bundles the same Skill and an inline remote-HTTP MCP entry, so there is **no API key to paste and no second `@agentkey/cli` step**. When Cursor prompts for MCP authentication, approve the AgentKey browser sign-in.
 
-For a Cursor Team Marketplace, import this repository URL directly. `.cursor-plugin/marketplace.json` maps AgentKey to the real repository-local plugin folder at `./plugins/agentkey`; Cursor's marketplace loader does not install external-source entries. The nested package mirrors the root Cursor manifest and canonical Skill, with synchronization enforced by tests. After updating the default branch, refresh the marketplace in Cursor Settings; imported marketplaces are indexed snapshots until a manual or automatic refresh runs.
+For a Cursor Team Marketplace, import this repository URL directly. `.cursor-plugin/marketplace.json` maps AgentKey to the real repository-local plugin folder at `./plugins/agentkey`; Cursor's marketplace loader does not install external-source entries. Team and Enterprise admins manage automatic or manual re-indexing from the web Dashboard. Personal GitHub imports in the Cursor IDE do not expose the same manual **Refresh** control and may continue to use an indexed commit.
+
+> **Maintainers — `plugins/agentkey/` is generated.** The only source files are `.cursor-plugin/plugin.json` and `skills/agentkey/`. Never edit the nested manifest or Skill copy directly. `./scripts/sync-cursor-marketplace-plugin.sh` copies both into `plugins/agentkey/` (excluding `version.txt`, which is not needed in the Cursor distribution package). CI runs the generator on macOS and Linux and fails if it changes any tracked file, with the exact command needed to repair the drift. CI intentionally does not commit generated files: after a failure, run the command locally and commit the resulting `plugins/agentkey/` diff with the source change.
 
 For the public Cursor Marketplace, submit the public repository URL at [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish). Before submitting, test the plugin in the current Cursor release and confirm that both the `agentkey` Skill and MCP server load successfully after OAuth. Both manifests follow the [Cursor plugin reference](https://cursor.com/docs/reference/plugins); keep plugin component paths relative to the plugin root.
 
@@ -437,9 +439,9 @@ agentkey/
 ├── gemini-extension.json        # Gemini CLI extension manifest (MCP OAuth + skills)
 ├── plugin.json                  # Antigravity desktop/CLI plugin manifest
 ├── mcp_config.json              # Antigravity remote MCP entry (serverUrl + OAuth)
-├── plugins/agentkey/            # Cursor Team Marketplace distribution package
-│   ├── .cursor-plugin/plugin.json
-│   └── skills/agentkey/         # Synced copy of the canonical Skill
+├── plugins/agentkey/            # Generated Cursor Team Marketplace package (do not edit)
+│   ├── .cursor-plugin/plugin.json  # Generated from the root Cursor manifest
+│   └── skills/agentkey/         # Generated from the canonical Skill
 ├── skills/agentkey/
 │   ├── SKILL.md                 # Decision tree + routing rules
 │   ├── scripts/                 # check-update helper
@@ -449,10 +451,10 @@ agentkey/
     ├── install.ps1              # Windows PowerShell installer
     ├── uninstall.sh             # One-command uninstaller (mac/linux)
     ├── uninstall.ps1            # Windows PowerShell uninstaller
-    └── sync-cursor-marketplace-plugin.sh  # Refresh the nested Cursor Skill copy
+    └── sync-cursor-marketplace-plugin.sh  # Generate the nested Cursor manifest + Skill
 ```
 
-**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, the four client plugin manifests plus the Cursor Team Marketplace manifest copy, `gemini-extension.json`, and `CHANGELOG.md`. The Antigravity schema has no `version` field, so its root `plugin.json` is not part of version syncing. After editing the canonical Skill, run `scripts/sync-cursor-marketplace-plugin.sh`; CI rejects any nested Cursor package drift. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
+**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, the four client plugin manifests plus the Cursor Team Marketplace manifest copy, `gemini-extension.json`, and `CHANGELOG.md`. The Antigravity schema has no `version` field, so its root `plugin.json` is not part of version syncing. CI regenerates the nested Cursor package and rejects the PR if the committed package is stale; run `scripts/sync-cursor-marketplace-plugin.sh` locally and commit its output to fix the check. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
 
 </details>
 
