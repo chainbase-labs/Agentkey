@@ -35,8 +35,10 @@ jobs:
       - name: Verify generated Cursor marketplace package
         run: |
           ./scripts/sync-cursor-marketplace-plugin.sh
-          if ! git diff --quiet -- plugins/agentkey; then
+          generated_status="$(git status --porcelain=v1 --untracked-files=all -- plugins/agentkey)"
+          if [ -n "$generated_status" ]; then
             echo "::error::Cursor marketplace package is stale. Run ./scripts/sync-cursor-marketplace-plugin.sh and commit the generated plugins/agentkey changes."
+            printf '%s\n' "$generated_status"
             git diff -- plugins/agentkey
             exit 1
           fi

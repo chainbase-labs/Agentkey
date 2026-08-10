@@ -384,7 +384,7 @@ Kimi 会把本地插件复制到自己的托管目录。修改原 checkout 后�
 
 如果使用 Cursor Team Marketplace，直接导入本仓库地址即可。`.cursor-plugin/marketplace.json` 会把 AgentKey 映射到仓库内真实存在的 `./plugins/agentkey` 插件目录；Cursor 的 marketplace loader 不会安装 external-source 条目。Team / Enterprise 管理员在 Web Dashboard 中管理自动或手动重新索引。Cursor IDE 内的个人 GitHub 导入没有相同的手动 **Refresh** 控件，并且可能继续使用已经索引的旧 commit。
 
-> **Maintainer 注意：`plugins/agentkey/` 是生成目录。** 唯一源码是 `.cursor-plugin/plugin.json` 和 `skills/agentkey/`，不要直接编辑嵌套的 manifest 或 Skill 副本。`./scripts/sync-cursor-marketplace-plugin.sh` 会把两者复制到 `plugins/agentkey/`（不复制 Cursor 分发包不需要的 `version.txt`）。CI 会分别在 macOS 和 Linux 上运行生成脚本；如果脚本改动了任何已跟踪文件，检查会失败并给出修复命令。CI 不会自动提交生成文件：检查失败后，在本地运行该命令，并把生成的 `plugins/agentkey/` diff 与源码改动一起提交。
+> **Maintainer 注意：`plugins/agentkey/` 是生成目录。** 唯一源码是 `.cursor-plugin/plugin.json` 和 `skills/agentkey/`，不要直接编辑嵌套的 manifest 或 Skill 副本。`./scripts/sync-cursor-marketplace-plugin.sh` 会把两者复制到 `plugins/agentkey/`（不复制 Cursor 分发包不需要的 `version.txt`）。CI 会分别在 macOS 和 Linux 上运行生成脚本；任何生成内容变化（包括未跟踪文件）都会让检查失败并给出修复命令。CI 不会自动提交生成文件：检查失败后，在本地运行该命令，并把生成的 `plugins/agentkey/` diff 与源码改动一起提交。
 
 如果发布到公开 Cursor Marketplace，请到 [cursor.com/marketplace/publish](https://cursor.com/marketplace/publish) 提交公开仓库地址。提交前请使用当前版本 Cursor 实际安装测试，确认 OAuth 完成后 `agentkey` Skill 和 MCP server 都能正常加载。两个清单均遵循 [Cursor 插件参考](https://cursor.com/cn/docs/reference/plugins)，插件的组件路径必须相对于插件根目录。
 
