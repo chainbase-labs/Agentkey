@@ -439,13 +439,14 @@ agentkey/
 │   ├── scripts/                 # check-update helper
 │   └── version.txt              # Managed by release-please
 └── scripts/
+    ├── build-release-assets.sh  # Build Skill + Gemini GitHub Release assets
     ├── install.sh               # One-command installer (mac/linux)
     ├── install.ps1              # Windows PowerShell installer
     ├── uninstall.sh             # One-command uninstaller (mac/linux)
     └── uninstall.ps1            # Windows PowerShell uninstaller
 ```
 
-**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all four versioned plugin manifests, `gemini-extension.json`, and `CHANGELOG.md`. The Antigravity schema has no `version` field, so its root `plugin.json` is not part of version syncing. Merging the Release PR creates the tag + GitHub Release + uploads the `agentkey.skill` asset.
+**Release a new version (maintainers):** releases are cut automatically by [release-please](https://github.com/googleapis/release-please). Merging a PR with a `feat:` or `fix:` title opens a Release PR that bumps `skills/agentkey/version.txt`, all four versioned plugin manifests, `gemini-extension.json`, and `CHANGELOG.md`. The Antigravity schema has no `version` field, so its root `plugin.json` is not part of version syncing. Merging the Release PR creates the tag + GitHub Release, preserves the `agentkey.skill` asset, and uploads platform-named Gemini extension archives whose roots contain `gemini-extension.json`.
 
 </details>
 

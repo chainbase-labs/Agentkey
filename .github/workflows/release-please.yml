@@ -22,29 +22,28 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  publish-skill-asset:
+  publish-release-assets:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
 
-      - name: Build agentkey.skill zip
-        run: |
-          cd skills/agentkey
-          zip -r "$GITHUB_WORKSPACE/agentkey.skill" . \
-            -x "*.DS_Store" \
-            -x "__pycache__/*" \
-            -x "*.pyc"
-          echo "--- contents ---"
-          unzip -l "$GITHUB_WORKSPACE/agentkey.skill"
+      - name: Build Skill and Gemini extension assets
+        run: scripts/build-release-assets.sh dist/release-assets
 
-      - name: Upload asset to release
+      - name: Upload assets to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
-          gh release upload "$TAG" agentkey.skill \
+          gh release upload "$TAG" \
+            dist/release-assets/agentkey.skill \
+            dist/release-assets/darwin.agentkey.tar.gz \
+            dist/release-assets/linux.agentkey.tar.gz \
+            dist/release-assets/win32.agentkey.zip \
             --repo "$GITHUB_REPOSITORY" \
             --clobber
 

@@ -3,18 +3,23 @@ on:
   push:
     paths:
       - 'skills/agentkey/scripts/**'
+      - 'scripts/build-release-assets.sh'
       - 'gemini-extension.json'
       - 'plugin.json'
       - 'mcp_config.json'
       - 'tests/**'
+      - '.github/workflows/release-please.yml'
       - '.github/workflows/scripts-test.yml'
   pull_request:
     paths:
       - 'skills/agentkey/scripts/**'
+      - 'scripts/build-release-assets.sh'
       - 'gemini-extension.json'
       - 'plugin.json'
       - 'mcp_config.json'
       - 'tests/**'
+      - '.github/workflows/release-please.yml'
+      - '.github/workflows/scripts-test.yml'
 
 jobs:
   bats:

@@ -44,6 +44,7 @@ agentkey/
 │   ├── scripts/                 # check-update helper
 │   └── version.txt              # Managed by release-please only — must live inside the skill so it survives `npx skills add`
 └── scripts/
+    ├── build-release-assets.sh  # Builds Skill + Gemini GitHub Release assets
     └── uninstall.sh             # End-user cleanup helper
 ```
 
@@ -110,6 +111,11 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Do not add static credentials, `settings`, custom headers, or `trust`. Gemini discovers the AgentKey OAuth metadata after the server's 401, and users authenticate with `/mcp auth agentkey`.
 - Do not duplicate `skills/agentkey/` or add an always-loaded `GEMINI.md`; Gemini discovers the existing skill automatically.
 - Keep the endpoint URL in sync with `.mcp.json`, `.codex-plugin/mcp.json`, `.cursor-plugin/plugin.json`, and `.kimi-plugin/plugin.json`.
+
+**Changes to GitHub Release assets:**
+- Keep `agentkey.skill` for Skill consumers, but never publish it as the only generic Release asset. Gemini CLI treats a lone generic asset as an extension archive and only extracts `.tar.gz` or `.zip` files.
+- Run `scripts/build-release-assets.sh` to produce `agentkey.skill` plus `darwin.agentkey.tar.gz`, `linux.agentkey.tar.gz`, and `win32.agentkey.zip`.
+- Every platform-named Gemini archive MUST contain `gemini-extension.json` and `skills/agentkey/SKILL.md` at its archive root. Keep the platform prefixes so Gemini selects these archives before `agentkey.skill`.
 
 **Changes to root `plugin.json` / `mcp_config.json` (Antigravity plugin path):**
 - Keep both files at the repository root so Antigravity 2.0 and Antigravity CLI share one plugin package and reuse `skills/agentkey/` without duplication.
