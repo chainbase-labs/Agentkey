@@ -18,12 +18,15 @@ assert manifest["description"]
 assert manifest["mcpServers"] == {
     "agentkey": {
         "httpUrl": "https://api.agentkey.app/v1/mcp",
+        "oauth": {
+            "enabled": True,
+        },
     }
 }
 PY
 }
 
-@test "Gemini extension relies on native OAuth discovery" {
+@test "Gemini extension requests native OAuth while relying on dynamic discovery" {
     python3 - "$MANIFEST" <<'PY'
 import json
 import sys
@@ -34,7 +37,11 @@ with open(sys.argv[1], encoding="utf-8") as handle:
 assert "settings" not in manifest
 server = manifest["mcpServers"]["agentkey"]
 assert "headers" not in server
-assert "oauth" not in server
+assert server["oauth"] == {"enabled": True}
+assert "authorizationUrl" not in server["oauth"]
+assert "tokenUrl" not in server["oauth"]
+assert "clientId" not in server["oauth"]
+assert "clientSecret" not in server["oauth"]
 assert "authProviderType" not in server
 assert "trust" not in server
 PY

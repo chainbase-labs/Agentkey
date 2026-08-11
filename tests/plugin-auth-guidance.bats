@@ -29,6 +29,7 @@ with open(sys.argv[1], encoding="utf-8") as handle:
 for expected in (
     "### Gemini CLI extension",
     "/extensions list",
+    "extension's `oauth.enabled` setting asks Gemini to start its native browser authorization automatically",
     "/mcp auth agentkey",
     "/mcp reload",
     "/mcp list",

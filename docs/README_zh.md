@@ -394,7 +394,7 @@ gemini extensions install https://github.com/chainbase-labs/agentkey
 gemini extensions link /absolute/path/to/agentkey
 ```
 
-安装或链接后重启 Gemini CLI。首次连接提示 AgentKey 需要认证属于正常现象：执行 `/mcp auth agentkey` 并在浏览器完成授权，然后执行 `/mcp reload` 和 `/mcp list`，确认 `agentkey` 已连接。Gemini 会保存并自动刷新 OAuth token，因此通常只需要登录一次。Extension 模式下不要再添加一条用户级 MCP 配置，也不要运行 `@agentkey/cli --auth-login`。
+安装或链接后重启 Gemini CLI。首次连接时，extension 的 `oauth.enabled` 会要求 Gemini 自动启动原生浏览器授权；完成授权后执行 `/mcp reload` 和 `/mcp list`，确认 `agentkey` 已连接。如果 Gemini 只提示需要认证，或者浏览器流程被关闭，则执行 `/mcp auth agentkey` 手动重新发起。Gemini 会保存并自动刷新 OAuth token，因此通常只需要登录一次。Extension 模式下不要再添加一条用户级 MCP 配置，也不要运行 `@agentkey/cli --auth-login`。
 
 如果 Gemini 提示 `~/.agents/skills/agentkey` 覆盖了 extension 捆绑的 Skill，这是独立的 Skill 优先级告警，不是 OAuth 失败。之前安装的用户级 Skill 优先级更高；当两份版本一致时可以安全保留，尤其是其他 Agent 也依赖这个共享目录时。只有确认其他 Agent 不再需要它之后，才执行 `gemini skills uninstall agentkey --scope user`，再运行 `/skills reload`。
 

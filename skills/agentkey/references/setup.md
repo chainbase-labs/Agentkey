@@ -13,9 +13,13 @@ add a second server and do not run `@agentkey/cli --auth-login` for that client.
 ### Gemini CLI extension
 
 1. Confirm `agentkey` is active with `/extensions list`.
-2. Run `/mcp auth agentkey` and complete the browser authorization.
-3. Run `/mcp reload`, then `/mcp list` and confirm `agentkey` is connected.
-4. Retry the original request only after `find_tools`, `describe_tool`, and
+2. On the first connection, the extension's `oauth.enabled` setting asks
+   Gemini to start its native browser authorization automatically. Complete
+   that flow when it opens.
+3. If Gemini only reports that authentication is required, or the browser flow
+   was closed, run `/mcp auth agentkey` to start it manually.
+4. Run `/mcp reload`, then `/mcp list` and confirm `agentkey` is connected.
+5. Retry the original request only after `find_tools`, `describe_tool`, and
    `execute_tool` are visible.
 
 A warning that `~/.agents/skills/agentkey` overrides the extension's bundled

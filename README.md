@@ -394,7 +394,7 @@ gemini extensions install https://github.com/chainbase-labs/agentkey
 gemini extensions link /absolute/path/to/agentkey
 ```
 
-Restart Gemini CLI after installing or linking. The first connection is expected to report that AgentKey requires authentication: run `/mcp auth agentkey` and approve the browser authorization, then run `/mcp reload` and `/mcp list` to confirm that `agentkey` is connected. Gemini stores and refreshes the OAuth tokens, so this is normally a one-time sign-in. Do not add a second user-level MCP entry or run `@agentkey/cli --auth-login` in extension mode.
+Restart Gemini CLI after installing or linking. On the first connection, the extension's `oauth.enabled` setting asks Gemini to start its native browser authorization automatically. Complete that flow, then run `/mcp reload` and `/mcp list` to confirm that `agentkey` is connected. If Gemini only reports that authentication is required, or the browser flow was closed, run `/mcp auth agentkey` to start it manually. Gemini stores and refreshes the OAuth tokens, so this is normally a one-time sign-in. Do not add a second user-level MCP entry or run `@agentkey/cli --auth-login` in extension mode.
 
 If Gemini reports that `~/.agents/skills/agentkey` overrides the copy bundled by the extension, that is a separate Skill-precedence warning rather than an OAuth failure. A previously installed user Skill has higher priority and can safely remain when it is the same version—especially if other agents use that shared directory. Remove it with `gemini skills uninstall agentkey --scope user` only when it is no longer needed elsewhere, then run `/skills reload`.
 
