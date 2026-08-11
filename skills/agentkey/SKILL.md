@@ -89,6 +89,14 @@ Never expose raw error details to the user.
 
 The skill is useless without the AgentKey MCP server registered with the user's agent. Two ways to connect — **try OAuth first**; fall back to an API key only if OAuth isn't available.
 
+Before adding anything, check whether an `agentkey` MCP server is already present but disconnected or waiting for authentication. Plugin and extension installs bundle that server entry. **Authenticate the bundled entry; do not register a duplicate server and do not run the standalone AgentKey CLI for that client.**
+
+- **Gemini CLI extension:** the bundled MCP entry requests native OAuth automatically. Complete the browser flow when it opens. If Gemini only reports that authentication is required, run `/mcp auth agentkey` manually; then `/mcp reload` and confirm the server is connected with `/mcp list`.
+- **Antigravity 2.0 plugin:** open **Settings → Customizations → Installed MCP Servers**, click **Authenticate** next to AgentKey, complete the browser flow, paste the authorization code, and submit it.
+- **Antigravity CLI plugin:** open `/mcp`, select the `agentkey` server, choose **Authenticate**, follow the displayed browser/code prompts, then reload it and confirm it is connected.
+
+If the client or its exact controls are uncertain, load `references/setup.md` and follow the matching client-specific flow.
+
 ### 1 — OAuth (preferred)
 
 Register the hosted MCP server into **whatever client you're running in**, using that client's own mechanism (an `mcp add` CLI command, an MCP settings panel, or editing its config file). Connection params:

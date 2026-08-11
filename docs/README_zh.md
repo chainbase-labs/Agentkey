@@ -394,9 +394,11 @@ gemini extensions install https://github.com/chainbase-labs/agentkey
 gemini extensions link /absolute/path/to/agentkey
 ```
 
-安装或链接后重启 Gemini CLI。如果 MCP server 提示需要认证，执行 `/mcp auth agentkey` 并在浏览器完成授权；之后 Gemini 会保存并自动刷新 OAuth token。修改 server 配置后可执行 `/mcp reload`。
+安装或链接后重启 Gemini CLI。首次连接时，extension 的 `oauth.enabled` 会要求 Gemini 自动启动原生浏览器授权；完成授权后执行 `/mcp reload` 和 `/mcp list`，确认 `agentkey` 已连接。如果 Gemini 只提示需要认证，或者浏览器流程被关闭，则执行 `/mcp auth agentkey` 手动重新发起。Gemini 会保存并自动刷新 OAuth token，因此通常只需要登录一次。Extension 模式下不要再添加一条用户级 MCP 配置，也不要运行 `@agentkey/cli --auth-login`。
 
-**Antigravity 2.0 / Antigravity CLI 插件模式** —— 两个运行时共用根目录的 `plugin.json`、`mcp_config.json` 和现有 `skills/`。MCP 配置使用 Antigravity 规定的 `serverUrl` 并依赖自动 OAuth discovery，**不用粘贴 API Key，也不需要再单独运行 `@agentkey/cli`**。
+如果 Gemini 提示 `~/.agents/skills/agentkey` 覆盖了 extension 捆绑的 Skill，这是独立的 Skill 优先级告警，不是 OAuth 失败。之前安装的用户级 Skill 优先级更高；当两份版本一致时可以安全保留，尤其是其他 Agent 也依赖这个共享目录时。只有确认其他 Agent 不再需要它之后，才执行 `gemini skills uninstall agentkey --scope user`，再运行 `/skills reload`。
+
+**Antigravity 2.0 / Antigravity CLI 插件模式** —— 两个运行时共用根目录的 `plugin.json`、`mcp_config.json` 和现有 `skills/`。MCP 配置使用 Antigravity 规定的 `serverUrl`，并通过动态客户端注册自动发现 OAuth，**不用粘贴 API Key、不用配置 OAuth client secret，也不需要再单独运行 `@agentkey/cli`**。
 
 Antigravity 2.0 可按 workspace 或全局范围放置插件，完成后重启 Antigravity：
 
@@ -415,7 +417,12 @@ agy plugin install /absolute/path/to/agentkey
 agy plugin list
 ```
 
-Antigravity 2.0 在 **Settings → Customizations → Authenticate** 中完成 OAuth。Antigravity CLI 首次连接时按认证提示操作；需要检查状态或重新加载 server 时打开 `/mcp`。
+Antigravity 发现插件后，应认证插件捆绑的 MCP 配置，不要重复添加另一条 server：
+
+- **Antigravity 2.0：**打开 **Settings → Customizations → Installed MCP Servers**，在 AgentKey 旁点击 **Authenticate**；在浏览器完成授权后，把 authorization code 复制回设置面板并提交。Server 会自动重连；状态没有更新时点击 **Refresh**。
+- **Antigravity CLI：**打开 `/mcp`，选择 `agentkey` 并点击 **Authenticate**，按界面给出的浏览器/验证码流程完成授权；在同一面板 reload server，确认 AgentKey 工具已经出现。如果仍是 disconnected，可直接在这里检查连接日志。
+
+不要在 `mcp_config.json` 中写入静态 header、access token 或 OAuth client credential。AgentKey 已发布 protected-resource 与 authorization-server metadata，并提供 dynamic registration endpoint，两个 Antigravity 运行时都应通过这些元数据完成发现。
 
 **仓库结构：**
 
@@ -439,13 +446,14 @@ agentkey/
 │   ├── scripts/                 # check-update 辅助脚本
 │   └── version.txt              # 由 release-please 自动维护
 └── scripts/
+    ├── build-release-assets.sh  # 构建 Skill + Gemini GitHub Release 产物
     ├── install.sh               # 一键安装脚本（mac/linux）
     ├── install.ps1              # Windows PowerShell 安装脚本
     ├── uninstall.sh             # 一键卸载脚本（mac/linux）
     └── uninstall.ps1            # Windows PowerShell 卸载脚本
 ```
 
-**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、四个带版本号的插件清单、`gemini-extension.json` 和 `CHANGELOG.md`。Antigravity schema 没有 `version` 字段，因此根目录 `plugin.json` 不参与版本同步。合并这个 Release PR 即会创建 tag + GitHub Release + 上传 `agentkey.skill` 产物。
+**发布新版本（Maintainer）：** 发版由 [release-please](https://github.com/googleapis/release-please) 自动触发。合并一个 `feat:` 或 `fix:` 的 PR 后，release-please 会开一个 Release PR，自动 bump `skills/agentkey/version.txt`、四个带版本号的插件清单、`gemini-extension.json` 和 `CHANGELOG.md`。Antigravity schema 没有 `version` 字段，因此根目录 `plugin.json` 不参与版本同步。合并这个 Release PR 即会创建 tag + GitHub Release，保留 `agentkey.skill` 产物，并上传根目录包含 `gemini-extension.json` 的平台命名 Gemini 扩展压缩包。
 
 </details>
 
