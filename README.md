@@ -1,3 +1,5 @@
+[![MCP Toplist](https://mcptoplist.com/badge/glama%2Fchainbase-labs%2FAgentkey.svg)](https://mcptoplist.com/server/glama%2Fchainbase-labs%2FAgentkey)
+
 <p align="center">
 <img width="256" alt="AgentKey" src="https://github.com/user-attachments/assets/4c7c78a9-e5d8-45ce-9372-d5bffe8f61c5" />
 </p>
