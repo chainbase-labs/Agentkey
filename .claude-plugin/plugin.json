@@ -24,13 +24,5 @@
     "real-time-data"
   ],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
-  "userConfig": {
-    "AGENTKEY_API_KEY": {
-      "title": "AgentKey API Key",
-      "description": "Your AgentKey API key. Get one free at https://console.agentkey.app/",
-      "type": "string",
-      "sensitive": true
-    }
-  }
+  "mcpServers": "./.mcp.json"
 }

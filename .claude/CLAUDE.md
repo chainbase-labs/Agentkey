@@ -13,7 +13,7 @@ AgentKey has **two pieces** and a full end-user install is two commands:
 
 The skill is useless without the MCP server; the MCP server works without the skill but the agent won't know to prefer it over built-in web search. Keep this mental model when editing docs — do not let either command drift into claiming it does both.
 
-The same repo also works as a Claude Code plugin (via `.claude-plugin/plugin.json` + `.mcp.json`) for users on the plugin marketplace path; in that mode the plugin's `userConfig` + `.mcp.json` substitute for step 2.
+The same repo also works as a Claude Code plugin (via `.claude-plugin/plugin.json` + `.mcp.json`) for users on the plugin marketplace path; the remote HTTP entry has no static authentication header, so Claude Code follows the server's 401/RFC 9728 metadata into its native MCP OAuth flow. That OAuth sign-in substitutes for step 2.
 
 It additionally works as a **Codex plugin** (via `.codex-plugin/plugin.json` + `.codex-plugin/mcp.json`, distributed through `.agents/plugins/marketplace.json` — the repo is its own marketplace, added with `codex plugin marketplace add chainbase-labs/agentkey`). Codex plugins have no `userConfig`/header-interpolation mechanism, so auth uses MCP OAuth instead: the server's `/v1/mcp` endpoint advertises `WWW-Authenticate: Bearer resource_metadata=…` (RFC 9728) and supports dynamic client registration, so `.codex-plugin/mcp.json` needs only `type` + `url` — discovery does the rest. In that mode the OAuth sign-in substitutes for step 2.
 
@@ -38,7 +38,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi Code manifest with inline HTTP MCP entry (OAuth)
 ├── .agents/plugins/marketplace.json  # Codex marketplace listing this repo as a local-source plugin
-├── .mcp.json                    # Auto-registers AgentKey MCP when installed as a Claude Code plugin
+├── .mcp.json                    # Claude MCP entry — HTTP + OAuth discovery, no static headers
 ├── gemini-extension.json        # Gemini CLI extension — Streamable HTTP + OAuth discovery
 ├── plugin.json                  # Antigravity desktop/CLI plugin marker
 ├── mcp_config.json              # Antigravity remote MCP entry — serverUrl + OAuth discovery
@@ -86,8 +86,9 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - release-please automatically bumps all four manifest versions + `CHANGELOG.md` from merged conventional-commit PRs; maintainers review + merge the generated Release PR rather than editing these files directly
 
 **Changes to `.mcp.json`:**
-- The MCP server is `type: http` (remote endpoint, no subprocess), so inject the API key by interpolating the userConfig value as `${user_config.AGENTKEY_API_KEY}` in the `Authorization` header — the key name MUST match the `plugin.json` `userConfig` key. Do NOT use `${CLAUDE_PLUGIN_OPTION_<KEY>}`: those env vars are only exported to stdio/subprocess servers and hook/monitor commands, and are not interpolated into an http server's headers.
-- Only matters for the Claude Code plugin path; the Skills-CLI path writes MCP config through `npx @agentkey/cli --auth-login`
+- Keep the remote server as the minimal `type: http` + `url` entry. Do not add `headers`, `headersHelper`, `userConfig`, a static token, or an API-key placeholder.
+- Claude Code treats any configured `Authorization` header as explicit header authentication and does not fall back to OAuth when that header receives a 401. With no header, the server's 401 and RFC 9728 protected-resource metadata expose the native **Authenticate** action and `claude mcp login plugin:agentkey:agentkey` flow.
+- This applies only to the Claude Code plugin path; the Skills-CLI path still writes API-key MCP config through `npx @agentkey/cli --auth-login`.
 
 **Changes to `.codex-plugin/mcp.json`:**
 - Codex plugin MCP config does NOT support `${user_config.*}` interpolation — a literal `${…}` would be sent as the Authorization header. Auth is MCP OAuth via RFC 9728 discovery: the server's 401 advertises `resource_metadata`, and the rmcp client automatically appends `resource=<server url>` to the authorization request.
@@ -136,7 +137,7 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 
 - Setup mode in SKILL.md runs `! npx -y @agentkey/cli --auth-login` to authenticate via browser — same command as step 2 of the public install
 - `@agentkey/cli --auth-login` auto-writes MCP configs for 16 agents (canonical list lives in `AGENT_REGISTRY` in `../AgentKey-Server/cli/src/lib/mcp-clients.ts`): Claude Code, Claude Desktop, Cursor, Codex, Gemini CLI, OpenCode, Qwen Code, iFlow CLI, Kimi CLI, Kiro CLI, Windsurf, Warp, Amp, Crush, droid, openclaw. The `--only <ids>` flag (used by install.sh's `MCP_TARGETS` and install.ps1's `$McpTargets`) filters this list — its id values MUST match `npx skills add -a` ids, with `claude-desktop` as the one documented MCP-only exception. Goose / kode / kilo still need a manual JSON paste (see SKILL.md's "Fallback" section); when adding more agents server-side, keep `MCP_AUTO_AGENTS` in both install scripts and the cleanup list in both uninstall scripts in sync.
-- `.mcp.json` registers the remote-HTTP MCP endpoint (`https://api.agentkey.app/v1/mcp`) in Claude Code plugin mode; the API key flows from plugin userConfig into the `Authorization: Bearer ${user_config.AGENTKEY_API_KEY}` header (no stdio binary is launched)
+- `.mcp.json` registers the remote-HTTP MCP endpoint (`https://api.agentkey.app/v1/mcp`) in Claude Code plugin mode with no static header or `userConfig`; Claude Code performs native MCP OAuth discovery after the server's 401 response.
 - `.cursor-plugin/plugin.json` registers the same endpoint inline in Cursor plugin mode, authenticated through Cursor's native MCP OAuth flow
 - `.kimi-plugin/plugin.json` registers the same endpoint inline in Kimi Code plugin mode. After reloading, the user starts Kimi's native MCP OAuth flow with `/mcp-config login plugin-agentkey:agentkey`.
 - `gemini-extension.json` registers the same endpoint through `httpUrl` in Gemini CLI extension mode. Gemini discovers the existing `skills/agentkey/` tree; `oauth.enabled` starts native OAuth automatically and `/mcp auth agentkey` retries it manually.

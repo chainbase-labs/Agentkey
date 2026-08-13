@@ -339,7 +339,7 @@ npx -y @agentkey/cli --auth-login
 
 **想改 MCP Server 本身？** MCP server 在 `AgentKey-Server/`（Go），端点是 `/v1/mcp`。本地起服务（`make run`），把 MCP 配置指向 `http://localhost:8081/v1/mcp` 就能端到端验证。
 
-**Claude Code 插件模式** —— 直接从 marketplace 安装。插件启用时会提示你填 AgentKey API Key 并自动接好 MCP server，**不需要再单独跑 `@agentkey/cli`**：
+**Claude Code 插件模式** —— 直接从 marketplace 安装。插件内置不带 header 的远程 HTTP 配置，并使用 Claude Code 原生 MCP OAuth，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
 ```bash
 # 公开安装
@@ -351,7 +351,7 @@ claude plugin marketplace add /absolute/path/to/agentkey
 claude plugin install agentkey@agentkey
 ```
 
-启用时 Claude Code 会提示填 `AGENTKEY_API_KEY`（存进系统钥匙串），并通过 `${user_config.AGENTKEY_API_KEY}` 注入插件的 `.mcp.json`。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 skills CLI 最快；插件路径是给 Claude Code 用户的一步到位选项。
+安装后运行 `/reload-plugins`，打开 `/mcp`，选择 AgentKey 并点击 **Authenticate**，然后在浏览器完成登录。也可以在终端运行 `claude mcp login plugin:agentkey:agentkey` 启动同一个 OAuth 流程。插件的 `.mcp.json` 会刻意保持无 `Authorization` header：一旦配置这个 header，Claude Code 就会把 server 判定为 header 认证，并在 401 后屏蔽 OAuth fallback。改了本地 checkout 后用 `claude plugin update agentkey` 重新加载。日常 Skill 迭代仍是 Skills CLI 最快；插件路径是 Claude Code 用户的 OAuth 安装方式。
 
 **Codex 插件模式** —— 从本仓库自带的 marketplace 安装。认证走 OAuth（安装时浏览器登录），**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
@@ -437,7 +437,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi 清单，内联 MCP OAuth 配置
 ├── .agents/plugins/marketplace.json  # Codex marketplace（本仓库即自己的 marketplace）
-├── .mcp.json                    # 作为 Claude Code 插件安装时使用
+├── .mcp.json                    # Claude 插件 MCP 配置（OAuth 自动发现，无 headers）
 ├── gemini-extension.json        # Gemini CLI 扩展清单（MCP OAuth + skills）
 ├── plugin.json                  # Antigravity 桌面端/CLI 插件清单
 ├── mcp_config.json              # Antigravity 远程 MCP 配置（serverUrl + OAuth）

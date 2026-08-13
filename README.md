@@ -339,7 +339,7 @@ npx -y @agentkey/cli --auth-login
 
 **Iterating on the MCP server itself?** The server lives at `AgentKey-Server/` (Go) and exposes the MCP endpoint at `/v1/mcp`. Run a local server (`make run`) and point your MCP config at `http://localhost:8081/v1/mcp` to test changes end-to-end.
 
-**Claude Code plugin mode** — install straight from the marketplace. The plugin prompts you for your AgentKey API key on enable and wires the MCP server for you, so there's **no second `@agentkey/cli` step**:
+**Claude Code plugin mode** — install straight from the marketplace. The plugin bundles a header-free remote HTTP entry and uses Claude Code's native MCP OAuth flow, so there is **no API key to paste and no second `@agentkey/cli` step**:
 
 ```bash
 # Public install
@@ -351,7 +351,7 @@ claude plugin marketplace add /absolute/path/to/agentkey
 claude plugin install agentkey@agentkey
 ```
 
-On enable, Claude Code prompts for `AGENTKEY_API_KEY` (stored in your OS keychain) and injects it into the plugin's `.mcp.json` via `${user_config.AGENTKEY_API_KEY}`. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day skill iteration is still fastest via the skills-CLI path; the plugin path is the one-step option for Claude Code users.
+After installation, run `/reload-plugins`, open `/mcp`, select the AgentKey entry, and choose **Authenticate** to complete browser sign-in. From a terminal, `claude mcp login plugin:agentkey:agentkey` starts the same OAuth flow. The plugin's `.mcp.json` intentionally has no `Authorization` header: adding one makes Claude Code treat the server as header-authenticated and suppresses OAuth fallback after a 401. Reload a local checkout with `claude plugin update agentkey` after edits. Day-to-day Skill iteration is still fastest via the Skills CLI path; the plugin path is the OAuth-based option for Claude Code users.
 
 **Codex plugin mode** — install from the marketplace bundled in this repo. Auth is OAuth (browser sign-in on install), so there's **no API key to paste and no second `@agentkey/cli` step**:
 
@@ -437,7 +437,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi manifest with inline MCP OAuth entry
 ├── .agents/plugins/marketplace.json  # Codex marketplace (this repo is its own marketplace)
-├── .mcp.json                    # Used when installed as a Claude Code plugin
+├── .mcp.json                    # Claude plugin MCP entry (OAuth discovery, no headers)
 ├── gemini-extension.json        # Gemini CLI extension manifest (MCP OAuth + skills)
 ├── plugin.json                  # Antigravity desktop/CLI plugin manifest
 ├── mcp_config.json              # Antigravity remote MCP entry (serverUrl + OAuth)
