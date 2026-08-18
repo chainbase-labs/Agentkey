@@ -5,7 +5,7 @@ $uninstallerPath = Join-Path $repoRoot 'scripts/uninstall.ps1'
 $uninstaller = [System.IO.File]::ReadAllText($uninstallerPath)
 $assignment = [regex]::Match(
     $uninstaller,
-    '(?m)^\$managedPattern = ''([^'']+)''$'
+    '(?m)^\$managedPattern = ''([^'']+)''\r?$'
 )
 
 if (-not $assignment.Success) {
