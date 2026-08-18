@@ -42,13 +42,21 @@ $NodeMinMajor = 18
 #
 # IMPORTANT: ids here MUST match the `--only` ids accepted by both
 # `npx skills add -a` and `npx -y @agentkey/cli --auth-login --only`.
-# `claude-desktop` is the documented exception (no skill install path, but
-# MCP config is writable) — it's listed below and used only for MCP --only.
+# `claude-desktop` and `dsh` are exceptions. Neither is passed to
+# `skills add -a`; DSH reads the global skill installed by `skills add -g`.
+$DshHome = if ([string]::IsNullOrWhiteSpace($env:DSH_HOME)) { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.dsh' } else { $env:DSH_HOME }
+if ($DshHome -eq '~') {
+    $DshHome = [Environment]::GetFolderPath('UserProfile')
+} elseif ($DshHome -match '^~[\\/]') {
+    $DshHome = Join-Path ([Environment]::GetFolderPath('UserProfile')) $DshHome.Substring(2)
+}
+$DshHome = [System.IO.Path]::GetFullPath($DshHome)
 $AgentMarkers = @(
     @{ Id = 'claude-code';    Markers = @("path:$env:USERPROFILE\.claude.json", 'cmd:claude') }
     @{ Id = 'claude-desktop'; Markers = @("path:$env:LOCALAPPDATA\AnthropicClaude", "path:$env:APPDATA\Claude\claude_desktop_config.json", "path:$env:APPDATA\Claude") }
     @{ Id = 'cursor';         Markers = @("path:$env:USERPROFILE\.cursor", 'cmd:cursor', "path:$env:LOCALAPPDATA\Programs\cursor") }
     @{ Id = 'codex';          Markers = @("path:$env:USERPROFILE\.codex", 'cmd:codex') }
+    @{ Id = 'dsh';            Markers = @("path:$DshHome", 'cmd:dsh') }
     @{ Id = 'gemini-cli';     Markers = @("path:$env:USERPROFILE\.gemini", 'cmd:gemini') }
     @{ Id = 'opencode';       Markers = @("path:$env:APPDATA\opencode", "path:$env:USERPROFILE\.opencode", 'cmd:opencode') }
     @{ Id = 'openclaw';       Markers = @("path:$env:USERPROFILE\.openclaw", 'cmd:openclaw') }
@@ -66,9 +74,9 @@ $AgentMarkers = @(
     @{ Id = 'kiro-cli';       Markers = @("path:$env:USERPROFILE\.kiro", 'cmd:kiro') }
 )
 
-# Agent ids that are MCP-only (no skill install path). Never passed to
-# `npx skills add -a`, only to `--auth-login --only`.
-$McpOnlyAgents = @('claude-desktop')
+# Agent ids excluded from per-agent `skills add -a`: Claude Desktop has no
+# skill path, while DSH intentionally consumes the global `skills add -g` copy.
+$SkillsAgentExclusions = @('claude-desktop', 'dsh')
 
 # Agent ids whose MCP registration the installer can drive automatically.
 # Mirror of MCP_AUTO_AGENTS in install.sh and AGENT_REGISTRY in
@@ -76,7 +84,7 @@ $McpOnlyAgents = @('claude-desktop')
 $McpAutoAgents = @(
     'claude-code', 'claude-desktop', 'cursor', 'codex', 'gemini-cli',
     'opencode', 'qwen-code', 'iflow-cli', 'kimi-cli', 'kiro-cli',
-    'windsurf', 'warp', 'amp', 'crush', 'droid', 'openclaw'
+    'windsurf', 'warp', 'amp', 'crush', 'droid', 'openclaw', 'dsh'
 )
 
 # ── UI helpers ────────────────────────────────────────────────────────────
@@ -252,8 +260,8 @@ if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
 }
 
 # Resolve target agent list — shared between the skill step and the MCP step.
-# $AllTargets   — every detected agent, including MCP-only ones (claude-desktop)
-# $SkillTargets — $AllTargets minus MCP-only ids (those would fail `skills add`)
+# $AllTargets   — every detected agent, including local exceptions
+# $SkillTargets — $AllTargets minus ids excluded from `skills add -a`
 # $McpTargets   — $AllTargets filtered to ids the MCP CLI knows how to write
 $AllTargets = @()
 if ($Only) {
@@ -271,17 +279,18 @@ if ($Only) {
     }
 }
 
-$SkillTargets = @($AllTargets | Where-Object { $_ -notin $McpOnlyAgents })
+$SkillTargets = @($AllTargets | Where-Object { $_ -notin $SkillsAgentExclusions })
 $McpTargets   = @($AllTargets | Where-Object { $_ -in   $McpAutoAgents })
+$DshSelected  = $AllTargets -contains 'dsh'
+$DshConfigured = $false
 
 # ── 2. Install the AgentKey skill ─────────────────────────────────────────
 if ($SkipSkill) {
     Write-Step '2. Install the AgentKey skill'
     Write-Muted 'Skipped (-SkipSkill)'
-} elseif ($AllTargets.Count -gt 0 -and $SkillTargets.Count -eq 0) {
-    # User explicitly selected only MCP-only ids (e.g. `-Only claude-desktop`).
-    # There's nothing for `skills add` to do — skip the step entirely rather
-    # than fall through to "install for every detected agent."
+} elseif ($AllTargets.Count -gt 0 -and $SkillTargets.Count -eq 0 -and -not $DshSelected) {
+    # DSH never enters this branch: `-Only dsh` must still run the global
+    # `skills add -g` path, without passing dsh to `-a`.
     Write-Step '2. Install the AgentKey skill'
     Write-Muted "Skipped — selected targets ($($AllTargets -join ',')) are MCP-only (no skill install path)."
 } else {
@@ -409,6 +418,7 @@ if ($SkipMcp) {
         Write-Muted "Retry manually:  npx -y $CliPackage $($authArgs -join ' ')"
         exit 1
     }
+    $DshConfigured = $McpTargets -contains 'dsh'
     Write-Ok 'MCP server registered'
 }
 
@@ -416,7 +426,11 @@ if ($SkipMcp) {
 Write-Step '✨ Installation complete'
 Write-Host ''
 Write-Host '  Next steps' -ForegroundColor White
-Write-Muted '1. Restart your agent (Claude Code / Cursor / etc.)'
+if ($DshConfigured) {
+    Write-Muted '1. Running DSH profiles hot-apply the home patch; start stopped DSH profiles and restart other clients.'
+} else {
+    Write-Muted '1. Restart your agent (Claude Code / Cursor / etc.)'
+}
 Write-Muted '2. Ask it something that needs the internet:'
 Write-Host '       "What has Musk been tweeting about lately?"' -ForegroundColor Cyan
 Write-Host ''

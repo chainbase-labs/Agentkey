@@ -210,7 +210,28 @@ for cfg in "${MCP_TOML_CONFIGS[@]}"; do
     ' "$cfg" > "$cfg.tmp" && mv "$cfg.tmp" "$cfg"
     ok "Removed agentkey block from $cfg"
 done
-
+# DSH cleanup is marker-scoped so unrelated home/profile patches survive.
+DSH_ROOT="${DSH_HOME:-}"; [[ -n "$DSH_ROOT" && "$DSH_ROOT" == *[![:space:]]* ]] || DSH_ROOT="$HOME/.dsh"
+case "$DSH_ROOT" in "~"|"~/"*) DSH_ROOT="$HOME${DSH_ROOT#"~"}" ;; /*) ;; *) DSH_ROOT="$PWD/$DSH_ROOT" ;; esac
+DSH_CLEANED=false
+for cfg in "$DSH_ROOT/cordis.patch.yml" "$DSH_ROOT"/profiles/*/cordis.patch.yml; do
+    [ -f "$cfg" ] || continue; grep -qE '^# agentkey:start([[:space:]]|$)' "$cfg" 2>/dev/null || { skipped "No AgentKey DSH block in $cfg"; continue; }; tmp="${cfg}.agentkey-uninstall.$$"
+    if awk 'BEGIN{s=0;i=0} /^# agentkey:start([[:space:]]|$)/{if(s)i=1;s=1;next} /^# agentkey:end([[:space:]]|$)/{if(!s)i=1;else{s=0;next}} !s{print} END{if(s||i)exit 42}' "$cfg" > "$tmp"; then
+        grep -q '^[[:space:]]*[^#[:space:]]' "$tmp" || printf '\n[]\n' >> "$tmp"
+        chmod 600 "$tmp"; mv "$tmp" "$cfg"; DSH_CLEANED=true; ok "Removed AgentKey DSH block from $cfg"
+    else
+        rm -f "$tmp"; warn "Malformed AgentKey markers in $cfg — left unchanged"
+    fi
+done
+LEGACY_DSH_PRESET="$DSH_ROOT/.agent-presets/agentkey"
+if [ -e "$LEGACY_DSH_PRESET" ] || [ -L "$LEGACY_DSH_PRESET" ]; then
+    DSH_PRESET_BACKUP="${LEGACY_DSH_PRESET}.backup-$(date -u +%Y%m%dT%H%M%SZ)"; while [ -e "$DSH_PRESET_BACKUP" ]; do DSH_PRESET_BACKUP="${DSH_PRESET_BACKUP}-1"; done; mv "$LEGACY_DSH_PRESET" "$DSH_PRESET_BACKUP"; ok "Archived legacy DSH preset at $DSH_PRESET_BACKUP"; fi
+DSH_SETTINGS="$DSH_ROOT/settings.yaml"
+if [ -f "$DSH_SETTINGS" ]; then
+    tmp="${DSH_SETTINGS}.agentkey-uninstall.$$"
+    if awk 'BEGIN{p=0;r=0} /^[[:space:]]*agent-presets\.default:[[:space:]]*["\047]?agentkey["\047]?[[:space:]]*(#.*)?$/{r=1;next} /^[^[:space:]#][^:]*:[[:space:]]*/{p=($0~/^agent-presets:[[:space:]]*(#.*)?$/);print;next} p&&/^[[:space:]]+default:[[:space:]]*["\047]?agentkey["\047]?[[:space:]]*(#.*)?$/{r=1;next} {print} END{if(r)exit 10}' "$DSH_SETTINGS" > "$tmp"; then status=0; else status=$?; fi
+    case "$status" in 0) rm -f "$tmp" ;; 10) mv "$tmp" "$DSH_SETTINGS"; ok "Removed legacy agent-presets default from $DSH_SETTINGS" ;; *) rm -f "$tmp"; warn "Could not clean legacy DSH settings in $DSH_SETTINGS" ;; esac
+fi
 # ── 2b. CLI-registered agents (droid / openclaw) ─────────────────────────
 # These two agents have no documented file-edit path; we registered them via
 # their own CLIs (`droid mcp add`, `openclaw mcp set`), so we have to use the
@@ -472,4 +493,8 @@ EOF
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────
-printf "\n  ${BOLD}✓ Uninstall complete.${NC}  Restart your agent to apply changes.\n\n"
+if $DSH_CLEANED; then
+    printf "\n  ${BOLD}✓ Uninstall complete.${NC}  Running DSH profiles watch removal; close legacy sessions or restart once if needed.\n\n"
+else
+    printf "\n  ${BOLD}✓ Uninstall complete.${NC}  Restart your agent to apply changes.\n\n"
+fi

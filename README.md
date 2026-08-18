@@ -83,13 +83,64 @@ curl -fsSL https://agentkey.app/install.sh | bash
 irm https://agentkey.app/install.ps1 | iex
 ```
 
-Restart your agent, then ask it something that needs the internet:
+Restart your agent, then ask it something that needs the internet. A running DeepSeek Harness profile watches the home patch through HMR; stopped profiles load it on their next start.
 
 > *"What has Musk been tweeting about lately?"*
 
 That's it. No API key to copy, no JSON to edit. 
 
 <sub>Need to target specific agents or run in CI? → See the "Advanced install options" item in the [FAQ](#faq).</sub>
+
+---
+
+### DeepSeek Harness (DSH)
+
+The one-line installers above detect `${DSH_HOME:-~/.dsh}` or the `dsh` command automatically. They install the AgentKey skill globally at `~/.agents/skills/agentkey`, authenticate with AgentKey, and add one managed Loader block to DSH's home-level patch:
+
+```text
+${DSH_HOME:-~/.dsh}/cordis.patch.yml
+```
+
+This is a **CLI-managed DSH MCP integration**, not a native installable DSH plugin. The home layer uses Loader id `agentkey`, module `@deepseek-ai/dsh-mcp-client`, and MCP `serverName: agentkey`; it is composed over current and future profiles. Tool allow/deny policy still controls whether a preset, session, or subagent can see the tools.
+
+DSH 0.1.0-rc.7 does not provide an OAuth `authProvider` to its MCP SDK client. A header-free server entry cannot complete 401/RFC 9728 discovery or open a browser. DSH must use the device-code command below so the CLI writes a local Bearer key.
+
+For a DSH-only manual install, run exactly these two steps:
+
+```bash
+npx skills add chainbase-labs/agentkey -g -y
+npx -y @agentkey/cli --auth-login --only dsh
+```
+
+The CLI stores the real API key only in the single local home patch; no key belongs in Git. Re-running the command rotates the key and replaces the managed block. No existing profile is required. During migration it removes only top-level, column-1 AgentKey managed blocks from per-profile patches and renames a legacy `.agent-presets/agentkey` directory to a timestamped backup; the CLI prints that backup path. If it structurally detects an older unmarked AgentKey Loader row, it stops without changing any patch and asks you to remove that top-level `insert` child manually. Symlinked profile patches are inspected read-only: a clean symlink profile is allowed, while either legacy AgentKey form stops installation and reports the path for manual removal.
+
+Only currently running profile processes observe the home-file change immediately through HMR. Stopped and future profiles load it when they start. If an old preset was already active in a session, close that session or restart DSH once after migration.
+
+#### How to confirm DSH installation
+
+1. Open **DSH → Settings → Plugins → Plugin list**, search for configured id `agentkey`, and expand the `mcp-client` row. DSH 0.1 currently renders:
+   - Loader path: `include:agentkey` (the stable configured entry id is `agentkey`)
+   - module title: `@deepseek-ai/dsh-mcp-client` (the card shortens it to `mcp-client`)
+   - Cordis status: `Mounted` (the underlying fiber phase is `active`)
+
+   `Mounted`/`active` proves only that Cordis loaded the row. Because `failOnStartupError: false`, it does **not** prove that MCP authenticated or connected.
+
+2. In the intended preset/session, confirm the three core tools are visible:
+   - `mcp__agentkey__find_tools`
+   - `mcp__agentkey__describe_tool`
+   - `mcp__agentkey__execute_tool`
+
+   `list_tools` is deprecated and is not a readiness requirement. If a core tool is hidden only in one context, inspect that preset/session/subagent's tool policy.
+
+3. Ask: **“Please use AgentKey to search for today's latest AI news.”** Success requires an actual `find_tools` → `describe_tool` → `execute_tool` call, not merely a Mounted card.
+
+Troubleshooting:
+
+- **No `agentkey` row:** the home patch was not written or `DSH_HOME` points elsewhere. Re-run the DSH-only CLI command and inspect its reported path.
+- **Row exists but is not Mounted/active:** inspect the Loader error and verify `@deepseek-ai/dsh-mcp-client` exists in the DSH installation.
+- **Mounted but tools are missing:** inspect MCP connection logs, the local Authorization key, and the active tool policy. In `tools/list`, each tool's root `inputSchema.additionalProperties` must be absent or `true`, never `false`.
+- **401:** the local key is missing or invalid; rerun auth-login to rotate it.
+- **`serverName already in use`:** rerun the current CLI so it archives the legacy preset, then close sessions that still hold the old preset or restart DSH once.
 
 ---
 
@@ -301,7 +352,7 @@ npx -y @agentkey/cli --auth-login
 <details>
 <summary><b>My agent isn't on the auto-configured list — how do I set it up manually?</b></summary>
 
-MCP auto-configuration covers **Claude Code**, **Claude Desktop**, and **Cursor**. For **Codex / OpenCode / Gemini CLI / Hermes / Manus** (or Linux Claude Desktop), the skill still installs automatically — but you'll need to paste this MCP snippet into the agent's own config (path varies per agent):
+The CLI supports the clients shown in its current **Supported agents** list, and the one-line installer targets the supported clients it detects — including **DeepSeek Harness**. If your client is not detected or supported for automatic configuration, the skill can still be installed globally, but you must paste this MCP snippet into that client's own config (path varies per client):
 
 ```json
 {

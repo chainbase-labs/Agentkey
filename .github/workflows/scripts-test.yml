@@ -49,3 +49,11 @@ jobs:
             sudo apt-get update && sudo apt-get install -y bats
           fi
       - run: bats tests/
+
+  dsh-powershell-marker:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve indented DSH block-scalar markers
+        shell: pwsh
+        run: ./tests/dsh-uninstall-marker.ps1

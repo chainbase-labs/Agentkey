@@ -25,6 +25,8 @@ It also works as a **Gemini CLI extension** (root `gemini-extension.json` + `ski
 
 It also works as an **Antigravity 2.0 and Antigravity CLI plugin** (root `plugin.json` + `mcp_config.json` + `skills/`). Both runtimes use the same package, require `serverUrl` for remote MCP, and authenticate through automatic OAuth discovery.
 
+It also has a **CLI-managed DeepSeek Harness integration**. The installers detect `${DSH_HOME:-~/.dsh}` / `dsh`, install the skill globally (never `skills add -a dsh`), and let `@agentkey/cli --auth-login --only dsh` maintain one marked `@deepseek-ai/dsh-mcp-client` entry in `$DSH_HOME/cordis.patch.yml`. DSH composes that home layer over current and future profiles; running processes watch it through HMR. DSH rc.7 has no MCP OAuth `authProvider`, so this path requires the CLI-written Bearer key. Tool policy may still hide tools.
+
 ## Directory Structure
 
 ```
@@ -132,11 +134,14 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Update both `README.md` and `docs/README_zh.md` together — they mirror each other
 - The canonical install is always the two-command sequence (`npx skills add …` + `npx -y @agentkey/cli --auth-login`). Don't imply either command does both.
 - Do **not** re-add OpenClaw / per-agent installers without a new design — historical context is in git history (removed in chore/remove-archive-directory)
+- Describe DSH as a CLI-managed MCP integration, not a native installable DSH plugin. Do not reintroduce the removed README-only `.dsh-plugin/agentkey/` placeholder without a real package and install contract.
+- Never commit a real DSH Authorization key. Tests and examples use obviously fake values; production keys live only in the user's local `cordis.patch.yml`.
 
 ## Architecture Constraints
 
 - Setup mode in SKILL.md runs `! npx -y @agentkey/cli --auth-login` to authenticate via browser — same command as step 2 of the public install
-- `@agentkey/cli --auth-login` auto-writes MCP configs for 16 agents (canonical list lives in `AGENT_REGISTRY` in `../AgentKey-Server/cli/src/lib/mcp-clients.ts`): Claude Code, Claude Desktop, Cursor, Codex, Gemini CLI, OpenCode, Qwen Code, iFlow CLI, Kimi CLI, Kiro CLI, Windsurf, Warp, Amp, Crush, droid, openclaw. The `--only <ids>` flag (used by install.sh's `MCP_TARGETS` and install.ps1's `$McpTargets`) filters this list — its id values MUST match `npx skills add -a` ids, with `claude-desktop` as the one documented MCP-only exception. Goose / kode / kilo still need a manual JSON paste (see SKILL.md's "Fallback" section); when adding more agents server-side, keep `MCP_AUTO_AGENTS` in both install scripts and the cleanup list in both uninstall scripts in sync.
+- `@agentkey/cli --auth-login` auto-writes MCP configs for 18 agents (canonical list lives in `AGENT_REGISTRY` in `../AgentKey-Server/cli/src/lib/mcp-clients.ts`), including Hermes and DeepSeek Harness. The `--only <ids>` flag filters this list. Most ids match `npx skills add -a`; `claude-desktop` has no skill path, `hermes` is a local CLI exception, and `dsh` deliberately uses only the global `skills add -g` path. Goose / kode / kilo still need manual MCP setup. Keep the Bash/PowerShell installer target subsets and uninstall cleanup behavior synchronized with their intended registry entries.
+- DSH automatic config is `${DSH_HOME:-~/.dsh}/cordis.patch.yml`, with exactly one `# agentkey:start` / `# agentkey:end` block in the home patch. The Loader entry id and `serverName` are both `agentkey`. Existing per-profile managed blocks are migration inputs only; recognize markers at column 1 and never inside indented YAML block scalars. Structurally detected unmarked legacy Loader rows must stop migration for manual removal, never trigger guessed text deletion. Symlinked profile patches are read-only migration inputs: allow clean ones, but stop before all writes when either legacy form is present. A profile is not required before installation. Archive a legacy `.agent-presets/agentkey` directory instead of deleting it. `Mounted` is not connection proof; readiness requires the three core MCP tools to be visible and callable in the intended tool policy.
 - `.mcp.json` registers the remote-HTTP MCP endpoint (`https://api.agentkey.app/v1/mcp`) in Claude Code plugin mode with no static header or `userConfig`; Claude Code performs native MCP OAuth discovery after the server's 401 response.
 - `.cursor-plugin/plugin.json` registers the same endpoint inline in Cursor plugin mode, authenticated through Cursor's native MCP OAuth flow
 - `.kimi-plugin/plugin.json` registers the same endpoint inline in Kimi Code plugin mode. After reloading, the user starts Kimi's native MCP OAuth flow with `/mcp-config login plugin-agentkey:agentkey`.
