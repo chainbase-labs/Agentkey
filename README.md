@@ -415,7 +415,7 @@ codex plugin marketplace add chainbase-labs/agentkey
 
 The plugin manifest lives in `.codex-plugin/plugin.json`; it bundles the same skill plus a remote-HTTP MCP entry (`.codex-plugin/mcp.json`) that authenticates against `https://api.agentkey.app/v1/mcp` via MCP OAuth (RFC 9728 discovery). Sign in with your AgentKey account when Codex prompts you.
 
-**Kimi Code plugin mode** — install the repo directly from Kimi Code. The manifest bundles the skill and an inline remote-HTTP MCP entry, so there is **no API key to paste and no second `@agentkey/cli` step**:
+**Kimi Code plugin mode** — install the repo directly from Kimi Code. The manifest bundles the skill and an inline remote-HTTP MCP entry at the client-attributed `https://api.agentkey.app/kimi/v1/mcp` route, so there is **no API key to paste and no second `@agentkey/cli` step**:
 
 ```text
 # Public install

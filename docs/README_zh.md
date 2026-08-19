@@ -415,7 +415,7 @@ codex plugin marketplace add chainbase-labs/agentkey
 
 插件清单在 `.codex-plugin/plugin.json`；它捆绑了同一个 Skill，外加一条远程 HTTP MCP 配置（`.codex-plugin/mcp.json`），通过 MCP OAuth（RFC 9728 自动发现）对 `https://api.agentkey.app/v1/mcp` 做认证。Codex 提示时用你的 AgentKey 账号登录即可。
 
-**Kimi Code 插件模式** —— 直接在 Kimi Code 中安装本仓库。插件清单同时捆绑 Skill 和内联的远程 HTTP MCP 配置，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+**Kimi Code 插件模式** —— 直接在 Kimi Code 中安装本仓库。插件清单同时捆绑 Skill，并通过客户端归因路由 `https://api.agentkey.app/kimi/v1/mcp` 提供内联的远程 HTTP MCP 配置，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
 ```text
 # 公开安装
