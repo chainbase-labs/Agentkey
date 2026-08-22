@@ -1,5 +1,41 @@
 # AgentKey — Setup details
 
+## DeepSeek Harness (DSH)
+
+DSH 0.1.0-rc.7 does not pass an OAuth `authProvider` into its MCP SDK client.
+It cannot follow a 401/RFC 9728 challenge or launch AgentKey's browser OAuth.
+Do not add a header-free MCP entry and do not use the generic JSON below.
+
+If this Skill is already running in DSH, authenticate and write the home-level
+Bearer configuration with:
+
+```bash
+npx -y @agentkey/cli --auth-login --only dsh
+```
+
+For a completely fresh install, install the global Skill first:
+
+```bash
+npx skills add chainbase-labs/agentkey -g -y
+npx -y @agentkey/cli --auth-login --only dsh
+```
+
+The CLI writes one managed loader block to `$DSH_HOME/cordis.patch.yml`, which
+applies to current and future profiles. Running profiles watch the home patch
+through HMR; stopped profiles load it on next start. A Loader status of
+`Mounted` only proves the row loaded: verify `find_tools`, `describe_tool`, and
+`execute_tool` are visible and callable. A preset/session/subagent tool policy
+may intentionally hide them. Close an old session or restart DSH once if a
+legacy preset was active during migration.
+
+Migration removes only AgentKey managed blocks whose markers start in column 1.
+Indented marker text inside a YAML block scalar is user data and stays untouched.
+If the CLI detects an older unmarked AgentKey Loader as a real top-level `insert`
+child, it stops without changing patches; remove that child manually and retry.
+Symlinked profile patches are inspected read-only. Clean symlink profiles do not
+block installation; a managed or unmarked legacy Loader in one must be removed
+manually from the reported target before retrying.
+
 Two ways to connect the hosted MCP server (`https://api.agentkey.app/v1/mcp`).
 **Prefer OAuth.** Use the API-key fallback only when the client can't do MCP
 OAuth, or the OAuth flow fails.
@@ -46,7 +82,7 @@ credential-free and authenticate the bundled `serverUrl` entry:
 Do not put OAuth client secrets, access tokens, or an `Authorization` header in
 the plugin package.
 
-### Other clients
+### Other clients (not DSH)
 
 If no AgentKey server entry exists, add the server with **no API key** and let
 the client run its own browser OAuth. The exact step depends on the client;

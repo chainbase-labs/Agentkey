@@ -83,13 +83,64 @@ curl -fsSL https://agentkey.app/install.sh | bash
 irm https://agentkey.app/install.ps1 | iex
 ```
 
-重启 Agent，然后问它一些需要联网的问题：
+重启 Agent，然后问它一些需要联网的问题。正在运行的 DeepSeek Harness profile 会通过 HMR 监听 home patch；未运行的 profile 会在下次启动时加载。
 
 > *"马斯克最近在推特上在说什么？"*
 
 就这样。不用复制 API Key，也不用改 JSON。
 
 <sub>想只装到特定 Agent 或在 CI 里跑？→ 看 [常见问题](#常见问题) 里的"进阶安装"条目。</sub>
+
+---
+
+### DeepSeek Harness（DSH）
+
+上面的一键安装会自动检测 `${DSH_HOME:-~/.dsh}` 或 `dsh` 命令，把 AgentKey Skill 全局安装到 `~/.agents/skills/agentkey`，完成 AgentKey 授权，并把一个受管 Loader 块写入 DSH home-level patch：
+
+```text
+${DSH_HOME:-~/.dsh}/cordis.patch.yml
+```
+
+这是 **CLI 管理的 DSH MCP 集成**，不是可通过 `dsh plugin` 安装的原生 DSH plugin。home layer 使用 Loader id `agentkey`、模块 `@deepseek-ai/dsh-mcp-client` 和 MCP `serverName: agentkey`，会叠加到当前及未来的 profile；但 preset、session 或 subagent 的 tool policy 仍可隐藏这些工具。
+
+DSH 0.1.0-rc.7 没有向 MCP SDK client 提供 OAuth `authProvider`。不带 header 的 server entry 无法完成 401/RFC 9728 自动发现，也不会弹出浏览器。因此 DSH 必须执行下面的 device-code 命令，由 CLI 写入本地 Bearer Key。
+
+如果只想手动安装到 DSH，严格执行下面两步：
+
+```bash
+npx skills add chainbase-labs/agentkey -g -y
+npx -y @agentkey/cli --auth-login --only dsh
+```
+
+CLI 只会把真实 API Key 写入单一的本地 home patch，API Key 不得进入 Git。重复运行会轮换 Key 并替换唯一的受管块，不会重复追加，也不要求已经存在 profile。迁移时只清除 per-profile patch 中位于 YAML 顶层、marker 从第 1 列开始的 AgentKey 受管块，并把旧 `.agent-presets/agentkey` 目录改名为带时间戳的备份；CLI 会输出备份位置。如果结构化检测到更早版本写入的未标记 AgentKey Loader 行，CLI 会在不修改任何 patch 的前提下停止，并提示手工删除对应的顶层 `insert` child。符号链接 profile patch 只做只读检查：不含旧 AgentKey 配置时允许安装；存在任一 legacy 形式时停止安装，输出路径并要求手工清理 symlink target。
+
+只有正在运行的 profile 进程会通过 HMR 立即观察到 home patch 变化；已停止和未来创建的 profile 会在启动时加载。如果旧 preset 已在某个 session 中激活，迁移后关闭该 session，或重启一次 DSH。
+
+#### 如何确认 DSH 安装成功
+
+1. 打开 **DSH → Settings → Plugins → Plugin list**，搜索配置 id `agentkey`，展开 `mcp-client` 行。DSH 0.1 当前显示为：
+   - Loader path：`include:agentkey`（稳定的配置条目 id 仍是 `agentkey`）
+   - module title：`@deepseek-ai/dsh-mcp-client`（卡片会缩写为 `mcp-client`）
+   - Cordis status：`Mounted`（底层 fiber phase 是 `active`）
+
+   `Mounted`/`active` 只证明 Cordis 已加载该配置行。由于 `failOnStartupError: false`，它**不能**证明 MCP 已认证或连接。
+
+2. 在目标 preset/session 中确认三个核心工具可见：
+   - `mcp__agentkey__find_tools`
+   - `mcp__agentkey__describe_tool`
+   - `mcp__agentkey__execute_tool`
+
+   `list_tools` 已弃用，不是 readiness 条件。如果只有某个上下文看不到核心工具，检查该 preset/session/subagent 的 tool policy。
+
+3. 提问：**“请使用 AgentKey 搜索今天最新的 AI 新闻”**。成功标准是实际完成 `find_tools` → `describe_tool` → `execute_tool` 调用，而不是只看到 Mounted 卡片。
+
+故障诊断：
+
+- **没有 `agentkey` 行：** home patch 未写入，或 `DSH_HOME` 指错位置。重跑 DSH-only CLI 命令，并检查它输出的路径。
+- **有配置行但不是 Mounted/active：** 查看 Loader 错误，并确认 DSH 安装中存在 `@deepseek-ai/dsh-mcp-client`。
+- **Mounted 但没有工具：** 检查 MCP 连接日志、本地 Authorization Key 和当前 tool policy；`tools/list` 中每个工具根 `inputSchema.additionalProperties` 必须缺省或为 `true`，不能为 `false`。
+- **401：** 本地 Key 缺失或无效；重跑 auth-login 轮换 Key。
+- **`serverName already in use`：** 重跑当前 CLI 归档旧 preset，再关闭仍持有旧 preset 的 session，或重启一次 DSH。
 
 ---
 
@@ -301,7 +352,7 @@ npx -y @agentkey/cli --auth-login
 <details>
 <summary><b>我的 Agent 没被自动配置，怎么手动设置？</b></summary>
 
-MCP 自动配置覆盖 **Claude Code**、**Claude Desktop**、**Cursor**。如果你用的是 **Codex / OpenCode / Gemini CLI / Hermes / Manus**（或 Linux 版 Claude Desktop），Skill 会正常装上，但你需要把下面这段 MCP 片段手动贴到该 Agent 的配置里（路径因 Agent 而异）：
+CLI 支持其当前 **Supported agents** 列表中的客户端，一键安装器会自动配置检测到的受支持客户端，其中包括 **DeepSeek Harness**。如果客户端未被检测到，或不支持自动配置，仍可全局安装 Skill，但需要把下面这段 MCP 片段手动贴到该客户端自己的配置里（路径因客户端而异）：
 
 ```json
 {
@@ -364,7 +415,7 @@ codex plugin marketplace add chainbase-labs/agentkey
 
 插件清单在 `.codex-plugin/plugin.json`；它捆绑了同一个 Skill，外加一条远程 HTTP MCP 配置（`.codex-plugin/mcp.json`），通过 MCP OAuth（RFC 9728 自动发现）对 `https://api.agentkey.app/v1/mcp` 做认证。Codex 提示时用你的 AgentKey 账号登录即可。
 
-**Kimi Code 插件模式** —— 直接在 Kimi Code 中安装本仓库。插件清单同时捆绑 Skill 和内联的远程 HTTP MCP 配置，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
+**Kimi Code 插件模式** —— 直接在 Kimi Code 中安装本仓库。插件清单同时捆绑 Skill，并通过客户端归因路由 `https://api.agentkey.app/kimi/v1/mcp` 提供内联的远程 HTTP MCP 配置，**不用粘贴 API Key，也不需要再单独跑 `@agentkey/cli`**：
 
 ```text
 # 公开安装

@@ -197,9 +197,86 @@ function Clean-McpTomlConfig($path) {
     Set-Content -Path $path -Value $out -Encoding UTF8
     Write-Ok "Removed agentkey block from $path"
 }
-
 foreach ($cfg in $mcpTomlConfigs) { Clean-McpTomlConfig $cfg }
-
+# DSH stores the MCP loader in the home patch; old installs used profiles.
+$DshHome = if ([string]::IsNullOrWhiteSpace($env:DSH_HOME)) { Join-Path $home2 '.dsh' } else { $env:DSH_HOME }
+if ($DshHome -eq '~') { $DshHome = $home2 }
+elseif ($DshHome -match '^~[\\/]') { $DshHome = Join-Path $home2 $DshHome.Substring(2) }
+$DshHome = [System.IO.Path]::GetFullPath($DshHome)
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$managedPattern = '(?ms)^# agentkey:start(?:[ \t][^\r\n]*)?(?:\r?\n|$).*?^# agentkey:end(?:[ \t][^\r\n]*)?(?:\r?\n|$)'
+$profilesDir = Join-Path $DshHome 'profiles'
+$dshCleaned = $false
+$dshPatches = New-Object System.Collections.Generic.List[string]
+$homePatch = Join-Path $DshHome 'cordis.patch.yml'; if (Test-Path $homePatch) { [void]$dshPatches.Add($homePatch) }
+if (Test-Path $profilesDir) {
+    foreach ($profile in Get-ChildItem $profilesDir -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'node_modules' }) {
+        $patch = Join-Path $profile.FullName 'cordis.patch.yml'
+        if (Test-Path $patch) { [void]$dshPatches.Add($patch) }
+    }
+}
+foreach ($patch in $dshPatches) {
+        $raw = [System.IO.File]::ReadAllText($patch)
+        $markerDepth = 0
+        $malformedMarkers = $false
+        foreach ($line in ($raw -split '\r?\n')) {
+            if ($line -match '^# agentkey:start(?:[ \t]|$)') {
+                if ($markerDepth -ne 0) { $malformedMarkers = $true }; $markerDepth++
+            } elseif ($line -match '^# agentkey:end(?:[ \t]|$)') {
+                if ($markerDepth -ne 1) { $malformedMarkers = $true }; if ($markerDepth -gt 0) { $markerDepth-- }
+            }
+        }
+        if ($markerDepth -ne 0) { $malformedMarkers = $true }
+        if ($malformedMarkers) {
+            Write-Warn2 "Malformed AgentKey markers in $patch — left unchanged"
+            continue
+        }
+        $updated = [regex]::Replace($raw, $managedPattern, '')
+        if ($updated -ne $raw) {
+            $meaningful = @($updated -split '\r?\n' | Where-Object { $_ -match '^\s*[^#\s]' })
+            if ($meaningful.Count -eq 0) {
+                $eol = if ($raw.Contains("`r`n")) { "`r`n" } else { "`n" }
+                $prefix = $updated.TrimEnd()
+                $updated = if ($prefix) { $prefix + $eol + $eol + '[]' + $eol } else { '[]' + $eol }
+            }
+            [System.IO.File]::WriteAllText($patch, $updated, $utf8NoBom)
+            $dshCleaned = $true
+            Write-Ok "Removed AgentKey DSH block from $patch"
+        } elseif ($raw -match '(?m)^# agentkey:start(?:[ \t]|$)') {
+            Write-Warn2 "Malformed AgentKey markers in $patch — left unchanged"
+        } else {
+            Write-Skip "No AgentKey DSH block in $patch"
+        }
+}
+$legacyDshPreset = Join-Path $DshHome '.agent-presets\agentkey'
+if (Test-Path $legacyDshPreset) {
+    $presetBackup = "$legacyDshPreset.backup-$([DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))"; while (Test-Path $presetBackup) { $presetBackup += '-1' }
+    Move-Item $legacyDshPreset $presetBackup; Write-Ok "Archived legacy DSH preset at $presetBackup" }
+$dshSettings = Join-Path $DshHome 'settings.yaml'
+if (Test-Path $dshSettings) {
+    $lines = [System.IO.File]::ReadAllLines($dshSettings)
+    $out = New-Object System.Collections.Generic.List[string]
+    $inPresets = $false
+    $removedDefault = $false
+    foreach ($line in $lines) {
+        if ($line -match '^\s*agent-presets\.default:\s*["'']?agentkey["'']?\s*(?:#.*)?$') {
+            $removedDefault = $true
+            continue
+        }
+        if ($line -match '^[^\s#][^:]*:\s*') {
+            $inPresets = $line -match '^agent-presets:\s*(?:#.*)?$'
+        }
+        if ($inPresets -and $line -match '^\s+default:\s*["'']?agentkey["'']?\s*(?:#.*)?$') {
+            $removedDefault = $true
+            continue
+        }
+        [void]$out.Add($line)
+    }
+    if ($removedDefault) {
+        [System.IO.File]::WriteAllLines($dshSettings, $out, $utf8NoBom)
+        Write-Ok "Removed legacy agent-presets default from $dshSettings"
+    }
+}
 # ── 2b. CLI-registered agents (droid / openclaw) ─────────────────────────
 # These two have no documented file-edit path; we registered them via their
 # CLIs so we have to unregister the same way. Best-effort — silently skip
@@ -418,5 +495,6 @@ foreach ($reg in $regs) {
 # ── Done ──────────────────────────────────────────────────────────────────
 Write-Host ''
 Write-Host '  ✓ Uninstall complete.' -ForegroundColor Green -NoNewline
-Write-Host '  Restart your agent to apply changes.' -ForegroundColor White
+if ($dshCleaned) { Write-Host '  Running DSH profiles watch removal; close legacy sessions or restart once if needed.' -ForegroundColor White }
+else { Write-Host '  Restart your agent to apply changes.' -ForegroundColor White }
 Write-Host ''

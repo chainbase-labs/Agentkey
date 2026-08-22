@@ -87,7 +87,15 @@ Never expose raw error details to the user.
 
 ## Setup
 
-The skill is useless without the AgentKey MCP server registered with the user's agent. Two ways to connect — **try OAuth first**; fall back to an API key only if OAuth isn't available.
+The skill is useless without the AgentKey MCP server registered with the user's agent. For clients other than the DSH exception below, **try OAuth first** and fall back to an API key only if OAuth isn't available.
+
+**DeepSeek Harness (DSH) is an exception:** DSH 0.1.0-rc.7's MCP client does not provide an OAuth `authProvider` to the MCP SDK. A header-free entry fails after the server's 401 and cannot open a browser flow. Do not use the generic OAuth or JSON instructions below in DSH. Run:
+
+```bash
+npx -y @agentkey/cli --auth-login --only dsh
+```
+
+This device-code flow writes a Bearer key to the single `$DSH_HOME/cordis.patch.yml` home layer. Running profiles watch that layer through HMR; stopped and future profiles load it when they start. Stop after setup and retry the original request only after `find_tools`, `describe_tool`, and `execute_tool` are visible. Tool allow/deny policy can still hide them.
 
 Before adding anything, check whether an `agentkey` MCP server is already present but disconnected or waiting for authentication. Plugin and extension installs bundle that server entry. **Authenticate the bundled entry; do not register a duplicate server and do not run the standalone AgentKey CLI for that client.**
 

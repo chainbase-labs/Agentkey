@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
-#
 # AgentKey installer for macOS and Linux
 # Usage: curl -fsSL https://agentkey.app/install.sh | bash
 #        curl -fsSL https://agentkey.app/install.sh | bash -s -- --yes
 #        curl -fsSL https://agentkey.app/install.sh | bash -s -- --interactive
 #        curl -fsSL https://agentkey.app/install.sh | bash -s -- --only claude-code,cursor
 #        curl -fsSL https://agentkey.app/install.sh | bash -s -- --skip-mcp
-#
-# The whole procedural body is wrapped in `main()` so that under `curl | bash`
-# bash reads the entire script into memory (as a function definition) before
-# executing any of it. Without this wrapper, `exec < /dev/tty` would clobber
-# bash's own script-source fd and the shell would hang trying to read the rest
-# of itself from the terminal.
 
 set -euo pipefail
 
@@ -19,22 +12,12 @@ set -euo pipefail
 SKILL_REPO="chainbase-labs/agentkey"
 CLI_PACKAGE="@agentkey/cli"
 NODE_MIN_MAJOR=18
+DSH_DETECT_HOME="${DSH_HOME:-}"; [[ -n "$DSH_DETECT_HOME" && "$DSH_DETECT_HOME" == *[![:space:]]* ]] || DSH_DETECT_HOME="$HOME/.dsh"
+case "$DSH_DETECT_HOME" in "~"|"~/"*) DSH_DETECT_HOME="$HOME${DSH_DETECT_HOME#"~"}" ;; /*) ;; *) DSH_DETECT_HOME="$PWD/$DSH_DETECT_HOME" ;; esac
 
 # ── Agent markers ─────────────────────────────────────────────────────────
-# Subset of vercel-labs/skills' 45 supported agent IDs that have reliable
-# on-disk markers (config dirs / binaries on PATH). Agents we can't probe
-# cleanly (mostly VS Code extensions like cline/continue/roo) just don't get
-# pre-detected — the user can pass --all-agents or --only to include them.
-# Sync source: https://github.com/vercel-labs/skills (Supported Agents table).
-#
-# IMPORTANT: ids here MUST match the `--only` ids accepted by both
-# `npx skills add -a` and `npx -y @agentkey/cli --auth-login --only`.
-# That alignment is what lets the installer drive both halves with one list.
-#
-# `claude-desktop` is the documented exception — it isn't in the skills CLI
-# (Desktop installs skills into a sandbox path the CLI can't write), but
-# Desktop's MCP config IS auto-writable, so we list it separately and pass
-# it ONLY to the MCP --only filter (see SKILL_TARGETS / MCP_TARGETS below).
+# `claude-desktop` and `dsh` are exceptions. Neither may be passed to
+# `skills add -a`; DSH reads the global skill installed by `skills add -g`.
 #
 # Format: <agent-id>|<marker>[,<marker>...]
 #   marker types:  cmd:foo            — `command -v foo`
@@ -44,6 +27,7 @@ AGENT_MARKERS=(
     "claude-desktop|path:/Applications/Claude.app,path:~/Applications/Claude.app,path:~/Library/Application Support/Claude/claude_desktop_config.json,path:~/Library/Application Support/Claude,path:~/.config/Claude/claude_desktop_config.json,path:~/.config/Claude"
     "cursor|path:~/.cursor,cmd:cursor"
     "codex|path:~/.codex,cmd:codex"
+    "dsh|path:$DSH_DETECT_HOME,cmd:dsh"
     "gemini-cli|path:~/.gemini,cmd:gemini"
     "opencode|path:~/.config/opencode,path:~/.opencode,cmd:opencode"
     "openclaw|path:~/.openclaw,cmd:openclaw"
@@ -61,23 +45,15 @@ AGENT_MARKERS=(
     "kiro-cli|path:~/.kiro,cmd:kiro"
 )
 
-# Agent ids that are MCP-only (no skill install path). These get passed to
-# `--auth-login --only` but NEVER to `npx skills add -a`.
-MCP_ONLY_AGENTS=(claude-desktop)
+SKILLS_AGENT_EXCLUSIONS=(claude-desktop dsh)
 
-# Agent ids whose MCP registration the installer can drive automatically.
-# Skipped agents (goose / kode / kilo) still get the skill, but the user
-# must register MCP manually for them. Keep this in sync with
-# AGENT_REGISTRY in AgentKey-Server/cli/src/lib/mcp-clients.ts.
 MCP_AUTO_AGENTS=(
     claude-code claude-desktop cursor codex gemini-cli opencode
     qwen-code iflow-cli kimi-cli kiro-cli windsurf warp
-    amp crush droid openclaw
+    amp crush droid openclaw dsh
 )
 
 # ── Colors (only if stdout is a TTY) ─────────────────────────────────────
-# Use $'...' so variables hold real ESC bytes — otherwise heredoc output prints
-# the literal string "\033[1m" instead of applying the SGR code.
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
     BOLD=$'\033[1m'
     ACCENT=$'\033[38;2;0;200;180m'   # AgentKey teal
@@ -145,7 +121,6 @@ EOF
 
 # ── Helpers: agent detection ──────────────────────────────────────────────
 
-# Expand a leading "~" to \$HOME (no glob expansion, no eval).
 _expand_path() {
     local p="$1"
     case "$p" in
@@ -154,7 +129,6 @@ _expand_path() {
     esac
 }
 
-# Probe a single marker: cmd:NAME (binary on PATH) or path:PATH (file/dir).
 _probe_marker() {
     local m="$1"
     case "$m" in
@@ -164,13 +138,11 @@ _probe_marker() {
     esac
 }
 
-# Print detected agent IDs as a comma-separated list (empty if none).
 detect_agents() {
     local entry id markers marker hits=()
     for entry in "${AGENT_MARKERS[@]}"; do
         id="${entry%%|*}"
         markers="${entry#*|}"
-        # Any marker hit ⇒ agent detected.
         IFS=',' read -ra marker_list <<<"$markers"
         for marker in "${marker_list[@]}"; do
             if _probe_marker "$marker"; then
@@ -184,7 +156,6 @@ detect_agents() {
     fi
 }
 
-# Membership helper: is "$1" in the rest of the argument list?
 _in_list() {
     local needle="$1"; shift
     local item
@@ -194,9 +165,6 @@ _in_list() {
     return 1
 }
 
-# Filter a comma-separated id list, keeping only ids that are passed in the
-# remaining arguments. Output is comma-separated. Short-circuits on empty
-# input so callers don't have to guard.
 _filter_csv() {
     local csv="$1"; shift
     [ -z "$csv" ] && return 0
@@ -223,7 +191,6 @@ install_node() {
             die "Homebrew not found. Install Node.js v$NODE_MIN_MAJOR+ manually: https://nodejs.org/"
         fi
     else
-        # Linux: NodeSource for apt/dnf/yum; apk for Alpine; otherwise manual
         if command -v apt-get >/dev/null 2>&1; then
             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - >/dev/null 2>&1 \
                 && sudo apt-get install -y nodejs >/dev/null 2>&1 || die "apt install nodejs failed"
@@ -242,9 +209,6 @@ install_node() {
     ui_ok "Node.js installed"
 }
 
-# Compute a stable per-device fingerprint for install_completed dedup.
-# spec §6.3: sha256(hostname+platform+username)[:16]. Falls back to a random
-# value if neither sha256sum nor shasum is available (extremely rare).
 compute_device_fingerprint() {
     local platform="$1"
     local hn user input hash
@@ -256,16 +220,11 @@ compute_device_fingerprint() {
     elif command -v shasum >/dev/null 2>&1; then
         hash="$(printf '%s' "$input" | shasum -a 256 | cut -c1-16)"
     else
-        # Last resort: use $RANDOM. Won't dedup across runs but won't crash.
         hash="rnd$(printf '%04x%04x%04x' "$RANDOM" "$RANDOM" "$RANDOM")"
     fi
     printf '%s' "$hash"
 }
 
-# ──────────────────────────────────────────────────────────────────────────
-# main — wraps the entire procedural body so that under `curl | bash`
-# bash finishes reading the script before any fd-rebinding happens.
-# ──────────────────────────────────────────────────────────────────────────
 main() {
     local MODE=""
     local ONLY_AGENTS=""
@@ -276,8 +235,6 @@ main() {
     local ALL_AGENTS=false
     local NO_TELEMETRY=false
 
-    # Snapshot original args before the parse loop shifts them away — needed
-    # later for AGENTKEY_INSTALLER_FLAGS env passthrough.
     local _orig_args=("$@")
 
     while [ $# -gt 0 ]; do
@@ -323,16 +280,6 @@ main() {
     esac
     ui_ok "Platform: $PLATFORM"
 
-    # Resolve stdin. `curl | bash` eats stdin — but /dev/tty is usually still
-    # reachable. Test by *actually opening* /dev/tty in a subshell; `[ -r ]`
-    # returns true even when the process has lost its controlling terminal
-    # (e.g. backgrounded, daemonized).
-    #
-    # IMPORTANT: we do NOT `exec < /dev/tty` globally. Under `curl | bash`
-    # bash is reading the script from its own stdin (the pipe); a global
-    # rebind would hijack bash's script reader and hang after `main` returns
-    # (bash would try to read the next byte from /dev/tty instead of EOF).
-    # Instead we redirect stdin *per interactive command* below.
     local TTY_AVAILABLE=false
     if ( : < /dev/tty ) >/dev/null 2>&1; then
         TTY_AVAILABLE=true
@@ -350,8 +297,6 @@ main() {
     fi
     ui_ok "Mode: $MODE"
 
-    # Resolve telemetry intent: --no-telemetry overrides everything; existing
-    # ~/.config/agentkey/telemetry-disabled file means already-opted-out.
     local TELEMETRY_OPT_OUT_FILE="$HOME/.config/agentkey/telemetry-disabled"
     if $NO_TELEMETRY; then
         mkdir -p "$(dirname "$TELEMETRY_OPT_OUT_FILE")" 2>/dev/null || true
@@ -363,7 +308,6 @@ main() {
         ui_info "Telemetry: anonymous usage stats enabled (re-run with --no-telemetry to opt out)"
     fi
 
-    # Node check
     local NODE_OK=false NODE_VERSION NODE_MAJOR
     if command -v node >/dev/null 2>&1; then
         NODE_VERSION="$(node --version 2>/dev/null | sed 's/^v//')"
@@ -381,7 +325,6 @@ main() {
             printf "\n  ${BOLD}Node.js v%s+ is required but not found.${NC}\n" "$NODE_MIN_MAJOR"
             printf "  Install it now? [Y/n] "
             local REPLY=""
-            # Read directly from the terminal, not from bash's stdin (the pipe)
             read -r REPLY < /dev/tty || REPLY=""
             case "$REPLY" in
                 n|N|no|No) die "Node.js required. Aborting." ;;
@@ -393,13 +336,6 @@ main() {
     command -v npx >/dev/null 2>&1 || die "npx not found after Node install — please reinstall Node.js"
 
     # ── Resolve target agent list ─────────────────────────────────────────
-    # Used by step 2 (skill) and step 3 (MCP). Computed once here so both
-    # halves see the same source of truth — that's the invariant the unified
-    # install+register design depends on. Two derived lists:
-    #
-    #   ALL_TARGETS  — every detected agent, including MCP-only ones (claude-desktop)
-    #   SKILL_TARGETS — ALL_TARGETS minus MCP-only ids (those would error in `skills add`)
-    #   MCP_TARGETS  — ALL_TARGETS filtered to ids the MCP CLI knows how to write
     local ALL_TARGETS=""
     if [ -n "$ONLY_AGENTS" ]; then
         ALL_TARGETS="$ONLY_AGENTS"
@@ -418,20 +354,21 @@ main() {
 
     local SKILL_TARGETS=""
     local MCP_TARGETS=""
+    local DSH_SELECTED=false
+    local DSH_MCP_CONFIGURED=false
     if [ -n "$ALL_TARGETS" ]; then
-        # SKILL_TARGETS: drop MCP-only ids (would fail in `skills add -a`).
         local _id
         local -a _id_list=() _kept=()
         IFS=',' read -ra _id_list <<<"$ALL_TARGETS"
         for _id in "${_id_list[@]}"; do
-            if ! _in_list "$_id" "${MCP_ONLY_AGENTS[@]}"; then
+            [ "$_id" = dsh ] && DSH_SELECTED=true
+            if ! _in_list "$_id" "${SKILLS_AGENT_EXCLUSIONS[@]}"; then
                 _kept+=("$_id")
             fi
         done
         if [ ${#_kept[@]} -gt 0 ]; then
             SKILL_TARGETS="$(printf '%s\n' "${_kept[@]}" | paste -sd, -)"
         fi
-        # MCP_TARGETS: keep only ids the MCP CLI knows how to register.
         MCP_TARGETS="$(_filter_csv "$ALL_TARGETS" "${MCP_AUTO_AGENTS[@]}")"
     fi
 
@@ -439,10 +376,7 @@ main() {
     if $SKIP_SKILL; then
         ui_step "2. Install the AgentKey skill"
         ui_muted "Skipped (--skip-skill)"
-    elif [ -n "$ALL_TARGETS" ] && [ -z "$SKILL_TARGETS" ]; then
-        # User explicitly selected only MCP-only ids (e.g. `--only claude-desktop`).
-        # There's nothing for `skills add` to do — skip the step entirely
-        # rather than fall through to "install for every detected agent."
+    elif [ -n "$ALL_TARGETS" ] && [ -z "$SKILL_TARGETS" ] && ! $DSH_SELECTED; then
         ui_step "2. Install the AgentKey skill"
         ui_muted "Skipped — selected targets ($ALL_TARGETS) are MCP-only (no skill install path)."
     else
@@ -450,22 +384,14 @@ main() {
 
         local SKILLS_ARGS=(-y skills add "$SKILL_REPO" -g)
         if [ -n "$SKILL_TARGETS" ]; then
-            # `skills` CLI accepts -a as either repeated or comma-separated.
-            # We pass each ID individually for maximum compatibility.
             local AGENT_LIST=()
             IFS=',' read -ra AGENT_LIST <<<"$SKILL_TARGETS"
             SKILLS_ARGS+=(-a "${AGENT_LIST[@]}")
         fi
-        # Always pass -y in noninteractive mode AND when we already resolved
-        # an explicit target list — there's nothing left to ask the user.
         if [ "$MODE" = noninteractive ] || [ -n "$ALL_TARGETS" ]; then
             SKILLS_ARGS+=(-y)
         fi
 
-        # Route npx's stdin to the terminal so its interactive multi-select can
-        # prompt the user — otherwise it inherits bash's piped stdin and breaks.
-        # When non-interactive (no TTY), stdin stays as /dev/null via < /dev/null
-        # to guarantee npx never blocks waiting for input.
         local npx_stdin="/dev/null"
         if [ "$MODE" = interactive ] && $TTY_AVAILABLE; then
             npx_stdin="/dev/tty"
@@ -473,9 +399,6 @@ main() {
         if ! npx "${SKILLS_ARGS[@]}" < "$npx_stdin"; then
             die "Failed to install skill via 'skills' CLI"
         fi
-        # The skills CLI sometimes prints "Installation failed" and still
-        # exits 0 (e.g. network error during git clone). Verify the skill
-        # actually landed on disk before declaring success.
         local _agentkey_found=false _dir
         for _dir in \
             "$HOME/.agents/skills/agentkey" \
@@ -504,26 +427,13 @@ main() {
     fi
 
     # ── 3. MCP authentication ────────────────────────────────────────────
-    # Always run auth-login. The CLI itself decides whether the existing
-    # token can be reused or a fresh device-code flow is needed — the
-    # installer no longer second-guesses by sniffing config files (which
-    # produced false positives across the stdio → HTTP schema change).
     if $SKIP_MCP; then
         ui_step "3. Register the MCP server"
         ui_muted "Skipped (--skip-mcp)"
     elif [ -n "$ALL_TARGETS" ] && [ -z "$MCP_TARGETS" ]; then
-        # User selected ONLY MCP-incompatible agents (goose / kode / kilo
-        # via --only). Running auth-login without --only would silently
-        # register MCP in every detected agent — overriding the user's
-        # explicit scope. Skip rather than over-register. See PR #41 B1.
         ui_step "3. Register the MCP server"
         ui_muted "Skipped — selected agents ($ALL_TARGETS) need manual MCP setup (see SKILL.md Fallback section)."
     else
-        # Pin MCP registration to the same agent list the skill step
-        # targeted. When MCP_TARGETS is empty (auto-detect found nothing),
-        # let `@agentkey/cli` do its own detection — same fallback we use
-        # for skill install. Older CLI versions silently ignore --only,
-        # so this is forward-compatible.
         local AUTH_ARGS=(--auth-login)
         if [ -n "$MCP_TARGETS" ]; then
             AUTH_ARGS+=(--only "$MCP_TARGETS")
@@ -538,12 +448,6 @@ main() {
         fi
         echo
 
-        # Telemetry context for `install_completed`. Opt-out is honored at
-        # the SOURCE: when AGENTKEY_TELEMETRY=0, no other context env vars
-        # are exported — hostname-derived fingerprint, agent lists, and
-        # installer flags are never computed nor passed to the child
-        # `npx @agentkey/cli` process. The server treats AGENTKEY_TELEMETRY=0
-        # as a hard skip.
         if $NO_TELEMETRY || [ -f "$TELEMETRY_OPT_OUT_FILE" ]; then
             export AGENTKEY_TELEMETRY=0
         else
@@ -564,15 +468,20 @@ main() {
             ui_muted "Retry manually:  npx -y $CLI_PACKAGE ${AUTH_ARGS[*]}"
             exit 1
         fi
+        case ",$MCP_TARGETS," in *,dsh,*) DSH_MCP_CONFIGURED=true ;; esac
         ui_ok "MCP server registered"
     fi
 
     # ── 4. Summary ───────────────────────────────────────────────────────
     ui_step "✨ Installation complete"
+    local APPLY_HINT="Restart your agent (Claude Code / Cursor / etc.)"
+    if $DSH_MCP_CONFIGURED; then
+        APPLY_HINT="Running DSH profiles hot-apply the home patch; start stopped DSH profiles and restart other clients"
+    fi
     cat <<EOF
 
   ${BOLD}Next steps${NC}
-    ${MUTED}1.${NC} Restart your agent (Claude Code / Cursor / etc.)
+    ${MUTED}1.${NC} $APPLY_HINT
     ${MUTED}2.${NC} Ask it something that needs the internet:
        ${ACCENT}"What has Musk been tweeting about lately?"${NC}
 

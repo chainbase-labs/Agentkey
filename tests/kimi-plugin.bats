@@ -17,7 +17,7 @@ servers = manifest.get("mcpServers")
 assert isinstance(servers, dict), "mcpServers must be an inline object"
 assert servers == {
     "agentkey": {
-        "url": "https://api.agentkey.app/v1/mcp",
+        "url": "https://api.agentkey.app/kimi/v1/mcp",
     }
 }
 PY
