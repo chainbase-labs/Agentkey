@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0](https://github.com/chainbase-labs/Agentkey/compare/v1.13.1...v1.14.0) (2026-08-22)
+
+
+### Features
+
+* add Cursor, Gemini CLI, and Antigravity plugin support ([#91](https://github.com/chainbase-labs/Agentkey/issues/91)) ([49a015b](https://github.com/chainbase-labs/Agentkey/commit/49a015b40838895bba96ebcb3c75eec98d635f39))
+* add DeepSeek Harness and Kimi MCP routing ([#96](https://github.com/chainbase-labs/Agentkey/issues/96)) ([97e3ab2](https://github.com/chainbase-labs/Agentkey/commit/97e3ab2fde13f32e4a9acafd3bb81c1ddb0c3c04))
+
+
+### Bug Fixes
+
+* **claude:** restore native MCP OAuth login ([#95](https://github.com/chainbase-labs/Agentkey/issues/95)) ([efc2809](https://github.com/chainbase-labs/Agentkey/commit/efc28096918b8565d495cacb6864b17f59cc7214))
+* **plugins:** package Gemini releases and improve OAuth ([#94](https://github.com/chainbase-labs/Agentkey/issues/94)) ([fbec683](https://github.com/chainbase-labs/Agentkey/commit/fbec683e87c5c687101385e52067e364864d269f))
+
 ## [1.13.1](https://github.com/chainbase-labs/Agentkey/compare/v1.13.0...v1.13.1) (2026-08-07)
 
 
