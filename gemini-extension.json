@@ -1,6 +1,6 @@
 {
   "name": "agentkey",
-  "version": "1.13.1",
+  "version": "1.14.0",
   "description": "AgentKey gives Gemini CLI one-stop access to live web, social, finance, crypto, e-commerce, business, weather, maps, and travel data.",
   "mcpServers": {
     "agentkey": {
