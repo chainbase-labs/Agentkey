@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.1](https://github.com/chainbase-labs/Agentkey/compare/v1.14.0...v1.14.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* **installer:** avoid PromptScript failure for DSH ([#97](https://github.com/chainbase-labs/Agentkey/issues/97)) ([8e93c67](https://github.com/chainbase-labs/Agentkey/commit/8e93c67a3362a8ec088896a71e3ef228af868932))
+
 ## [1.14.0](https://github.com/chainbase-labs/Agentkey/compare/v1.13.1...v1.14.0) (2026-08-22)
 
 
