@@ -17,7 +17,7 @@ case "$DSH_DETECT_HOME" in "~"|"~/"*) DSH_DETECT_HOME="$HOME${DSH_DETECT_HOME#"~
 
 # ── Agent markers ─────────────────────────────────────────────────────────
 # `claude-desktop` and `dsh` are exceptions. Neither may be passed to
-# `skills add -a`; DSH reads the global skill installed by `skills add -g`.
+# `skills add -a`; DSH reads the global skill installed for `universal`.
 #
 # Format: <agent-id>|<marker>[,<marker>...]
 #   marker types:  cmd:foo            — `command -v foo`
@@ -387,6 +387,8 @@ main() {
             local AGENT_LIST=()
             IFS=',' read -ra AGENT_LIST <<<"$SKILL_TARGETS"
             SKILLS_ARGS+=(-a "${AGENT_LIST[@]}")
+        elif $DSH_SELECTED; then
+            SKILLS_ARGS+=(-a universal -s agentkey)
         fi
         if [ "$MODE" = noninteractive ] || [ -n "$ALL_TARGETS" ]; then
             SKILLS_ARGS+=(-y)
@@ -421,7 +423,7 @@ main() {
             [ -f "$_dir/SKILL.md" ] && { _agentkey_found=true; break; }
         done
         if ! $_agentkey_found; then
-            die "Skill install reported success but no agentkey SKILL.md was created — likely a network or git clone failure. Retry: npx -y skills add $SKILL_REPO -g -y"
+            die "Skill install reported success but no agentkey SKILL.md was created — likely a network or git clone failure. Retry: npx -y skills add $SKILL_REPO -g -a universal -s agentkey -y"
         fi
         ui_ok "Skill installed"
     fi

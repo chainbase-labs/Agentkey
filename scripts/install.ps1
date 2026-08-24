@@ -43,7 +43,7 @@ $NodeMinMajor = 18
 # IMPORTANT: ids here MUST match the `--only` ids accepted by both
 # `npx skills add -a` and `npx -y @agentkey/cli --auth-login --only`.
 # `claude-desktop` and `dsh` are exceptions. Neither is passed to
-# `skills add -a`; DSH reads the global skill installed by `skills add -g`.
+# `skills add -a`; DSH reads the global skill installed for `universal`.
 $DshHome = if ([string]::IsNullOrWhiteSpace($env:DSH_HOME)) { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.dsh' } else { $env:DSH_HOME }
 if ($DshHome -eq '~') {
     $DshHome = [Environment]::GetFolderPath('UserProfile')
@@ -75,7 +75,7 @@ $AgentMarkers = @(
 )
 
 # Agent ids excluded from per-agent `skills add -a`: Claude Desktop has no
-# skill path, while DSH intentionally consumes the global `skills add -g` copy.
+# skill path, while DSH consumes the global `universal` copy.
 $SkillsAgentExclusions = @('claude-desktop', 'dsh')
 
 # Agent ids whose MCP registration the installer can drive automatically.
@@ -290,7 +290,7 @@ if ($SkipSkill) {
     Write-Muted 'Skipped (-SkipSkill)'
 } elseif ($AllTargets.Count -gt 0 -and $SkillTargets.Count -eq 0 -and -not $DshSelected) {
     # DSH never enters this branch: `-Only dsh` must still run the global
-    # `skills add -g` path, without passing dsh to `-a`.
+    # `skills add -g -a universal` path, without passing dsh to `-a`.
     Write-Step '2. Install the AgentKey skill'
     Write-Muted "Skipped — selected targets ($($AllTargets -join ',')) are MCP-only (no skill install path)."
 } else {
@@ -300,6 +300,8 @@ if ($SkipSkill) {
     if ($SkillTargets.Count -gt 0) {
         $skillsArgs += '-a'
         $skillsArgs += $SkillTargets
+    } elseif ($DshSelected) {
+        $skillsArgs += @('-a', 'universal', '-s', 'agentkey')
     }
     # Always pass -y in noninteractive mode AND when we already resolved
     # an explicit target list — there's nothing left to ask the user.
@@ -344,7 +346,7 @@ if ($SkipSkill) {
         }
     }
     if (-not $agentkeyFound) {
-        Die "Skill install reported success but no agentkey SKILL.md was created — likely a network or git clone failure. Retry: npx -y skills add $SkillRepo -g -y"
+        Die "Skill install reported success but no agentkey SKILL.md was created — likely a network or git clone failure. Retry: npx -y skills add $SkillRepo -g -a universal -s agentkey -y"
     }
     Write-Ok 'Skill installed'
 }

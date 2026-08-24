@@ -50,10 +50,13 @@ jobs:
           fi
       - run: bats tests/
 
-  dsh-powershell-marker:
+  dsh-powershell:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Use the universal target for DSH-only global installs
+        shell: pwsh
+        run: ./tests/dsh-install-target.ps1
       - name: Preserve indented DSH block-scalar markers
         shell: pwsh
         run: ./tests/dsh-uninstall-marker.ps1

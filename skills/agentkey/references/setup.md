@@ -16,7 +16,7 @@ npx -y @agentkey/cli --auth-login --only dsh
 For a completely fresh install, install the global Skill first:
 
 ```bash
-npx skills add chainbase-labs/agentkey -g -y
+npx -y skills add chainbase-labs/agentkey -g -a universal -s agentkey -y
 npx -y @agentkey/cli --auth-login --only dsh
 ```
 

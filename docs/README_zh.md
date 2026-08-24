@@ -108,7 +108,7 @@ DSH 0.1.0-rc.7 没有向 MCP SDK client 提供 OAuth `authProvider`。不带 hea
 如果只想手动安装到 DSH，严格执行下面两步：
 
 ```bash
-npx skills add chainbase-labs/agentkey -g -y
+npx -y skills add chainbase-labs/agentkey -g -a universal -s agentkey -y
 npx -y @agentkey/cli --auth-login --only dsh
 ```
 

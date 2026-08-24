@@ -15,9 +15,11 @@ assert '"dsh|path:$DSH_DETECT_HOME,cmd:dsh"' in bash
 assert 'DSH_DETECT_HOME="${DSH_HOME:-}"' in bash
 assert 'SKILLS_AGENT_EXCLUSIONS=(claude-desktop dsh)' in bash
 assert 'amp crush droid openclaw dsh' in bash
+assert 'SKILLS_ARGS+=(-a universal -s agentkey)' in bash
 assert "@{ Id = 'dsh'" in ps
 assert "$SkillsAgentExclusions = @('claude-desktop', 'dsh')" in ps
 assert "'openclaw', 'dsh'" in ps
+assert "$skillsArgs += @('-a', 'universal', '-s', 'agentkey')" in ps
 PY
 }
 
@@ -42,9 +44,36 @@ SH
         bash -c 'cd "$1" && "$2" --yes --only dsh --no-telemetry' bash "$work" "$REPO_ROOT/scripts/install.sh"
 
     [ "$status" -eq 0 ]
-    grep -F 'skills add chainbase-labs/agentkey -g' "$log"
+    grep -F 'skills add chainbase-labs/agentkey -g -a universal -s agentkey -y' "$log"
     ! grep -E 'skills add .* -a .*dsh|skills add .* -a dsh' "$log"
     grep -F '@agentkey/cli --auth-login --only dsh' "$log"
+}
+
+@test "--only dsh,codex keeps the explicit codex skill target" {
+    home="$BATS_TEST_TMPDIR/mixed-home"
+    work="$BATS_TEST_TMPDIR/mixed-work"
+    fakebin="$BATS_TEST_TMPDIR/mixed-bin"
+    mkdir -p "$home" "$work" "$fakebin"
+    log="$BATS_TEST_TMPDIR/mixed-npx.log"
+    cat > "$fakebin/npx" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$AGENTKEY_NPX_LOG"
+if [[ " $* " == *" skills add "* ]]; then
+    mkdir -p "$HOME/.agents/skills/agentkey"
+    printf '%s\n' '# fake skill' > "$HOME/.agents/skills/agentkey/SKILL.md"
+fi
+exit 0
+SH
+    chmod +x "$fakebin/npx"
+
+    run env HOME="$home" DSH_HOME="$home/.dsh" AGENTKEY_NPX_LOG="$log" PATH="$fakebin:$PATH" \
+        bash -c 'cd "$1" && "$2" --yes --only dsh,codex --no-telemetry' bash "$work" "$REPO_ROOT/scripts/install.sh"
+
+    [ "$status" -eq 0 ]
+    grep -F 'skills add chainbase-labs/agentkey -g -a codex -y' "$log"
+    ! grep -F 'skills add chainbase-labs/agentkey -g -a universal' "$log"
+    ! grep -E 'skills add .* -a .*dsh|skills add .* -a dsh' "$log"
+    grep -F '@agentkey/cli --auth-login --only dsh,codex' "$log"
 }
 
 @test "--skip-mcp --only dsh does not claim that DSH hot-applied MCP" {
@@ -277,7 +306,7 @@ import sys
 for path in sys.argv[1:]:
     text = open(path, encoding="utf-8").read()
     for expected in (
-        "npx skills add chainbase-labs/agentkey -g -y",
+        "npx -y skills add chainbase-labs/agentkey -g -a universal -s agentkey -y",
         "npx -y @agentkey/cli --auth-login --only dsh",
         "cordis.patch.yml",
         "@deepseek-ai/dsh-mcp-client",
