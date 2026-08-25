@@ -1,0 +1,12 @@
+name: web-agentkey
+version: 0.1.0
+description: "AgentKey web search + extraction provider for Hermes. Requires AGENTKEY_API_KEY."
+author: Chainbase Labs
+kind: backend
+provides_web_providers:
+  - agentkey
+requires_env:
+  - name: AGENTKEY_API_KEY
+    description: "AgentKey API key"
+    url: "https://console.agentkey.app"
+    secret: true
