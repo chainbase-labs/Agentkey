@@ -35,6 +35,11 @@
       "Read"
     ],
     "websiteURL": "https://agentkey.app",
+    "logo": "./assets/logo.png",
+    "logoDark": "./assets/logo-dark.png",
+    "composerIcon": "./assets/logo.png",
+    "composerIconDark": "./assets/logo-dark.png",
+    "brandColor": "#20808E",
     "defaultPrompt": [
       "Use AgentKey to search and summarize trending Reddit content about AI office tools from the past 7 days, then give me 5 content angles suitable for a newsletter or short-form video.",
       "Use AgentKey to search Instagram for trending posts about yoga mats from the past 3 days, and analyze the topic, hook, and format of 5 high-engagement posts.",
