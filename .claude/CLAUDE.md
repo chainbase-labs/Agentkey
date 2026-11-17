@@ -40,6 +40,7 @@ agentkey/
 ├── .kimi-plugin/
 │   └── plugin.json              # Kimi Code manifest with inline HTTP MCP entry (OAuth)
 ├── .agents/plugins/marketplace.json  # Codex marketplace listing this repo as a local-source plugin
+├── assets/                      # Plugin icons (logo.png / logo-dark.png, 512x512 PNG) — must live here; Codex rejects icon paths outside assets/
 ├── .mcp.json                    # Claude MCP entry — HTTP + OAuth discovery, no static headers
 ├── gemini-extension.json        # Gemini CLI extension — Streamable HTTP + OAuth discovery
 ├── plugin.json                  # Antigravity desktop/CLI plugin marker
@@ -96,6 +97,8 @@ Releases are driven by [release-please](https://github.com/googleapis/release-pl
 - Codex plugin MCP config does NOT support `${user_config.*}` interpolation — a literal `${…}` would be sent as the Authorization header. Auth is MCP OAuth via RFC 9728 discovery: the server's 401 advertises `resource_metadata`, and the rmcp client automatically appends `resource=<server url>` to the authorization request.
 - Do NOT set `oauth_resource`: rmcp already sends `resource` on its own, and Codex appends `oauth_resource` as a *second* `resource` query param without deduplication (`codex-rs/rmcp-client/src/perform_oauth_login.rs`). Clerk enforces RFC 6749 (no repeated params) and rejects the request with `invalid_request: The request includes the parameter 'resource' more than once`. The official Notion/Figma plugins get away with it only because their authorization servers tolerate duplicates.
 - Keep each plugin endpoint aligned with the Server routing contract. Kimi uses the attributed `/kimi/v1/mcp` alias; the other plugin manifests currently use `/v1/mcp`. Do not require every client path to be byte-identical.
+- `interface` carries the branding Codex renders: `logo` / `logoDark` (plugin list + detail) and `composerIcon` / `composerIconDark` (`@` mention chip), plus `brandColor` (`#20808E`). Without them Codex shows the plugin with no icon.
+- Icon paths must be relative and resolve **under the plugin root's `assets/`** — Codex rejects `..` and any path outside `assets/`. Note that is the repo-root `assets/`, not `.codex-plugin/assets/`. Ship a dark variant: the mark is near-black and disappears on dark themes.
 
 **Changes to `.cursor-plugin/plugin.json`:**
 - The manifest MUST stay at `.cursor-plugin/plugin.json`; component paths resolve from the plugin root.
