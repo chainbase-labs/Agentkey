@@ -12,7 +12,8 @@
   <a href="#install">Install</a> ·
   <a href="#what-your-agent-can-now-do">Platforms</a> ·
   <a href="#faq">FAQ</a> ·
-  <a href="docs/README_zh.md">中文</a>
+  <a href="docs/README_zh.md">中文</a> ·
+  <a href="docs/README_ja.md">日本語</a>
 </p>
 
 <p align="center">

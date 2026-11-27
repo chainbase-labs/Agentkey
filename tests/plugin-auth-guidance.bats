@@ -58,8 +58,8 @@ for expected in (
 PY
 }
 
-@test "English and Chinese public docs mirror both client auth flows" {
-    python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/docs/README_zh.md" <<'PY'
+@test "English, Chinese and Japanese public docs mirror both client auth flows" {
+    python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/docs/README_zh.md" "$REPO_ROOT/docs/README_ja.md" <<'PY'
 import sys
 
 for path in sys.argv[1:]:

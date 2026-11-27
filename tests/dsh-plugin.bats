@@ -299,8 +299,8 @@ assert re.sub(pattern, "", source) == source
 PY
 }
 
-@test "English and Chinese docs describe the same DSH verification contract" {
-    python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/docs/README_zh.md" <<'PY'
+@test "English, Chinese and Japanese docs describe the same DSH verification contract" {
+    python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/docs/README_zh.md" "$REPO_ROOT/docs/README_ja.md" <<'PY'
 import sys
 
 for path in sys.argv[1:]:
