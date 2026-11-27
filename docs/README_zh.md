@@ -12,7 +12,8 @@
   <a href="#安装">安装</a> ·
   <a href="#装好之后能干什么">支持平台</a> ·
   <a href="#常见问题">常见问题</a> ·
-  <a href="../README.md">English</a>
+  <a href="../README.md">English</a> ·
+  <a href="README_ja.md">日本語</a>
 </p>
 
 <p align="center">

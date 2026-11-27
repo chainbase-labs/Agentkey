@@ -33,7 +33,7 @@ PY
 }
 
 @test "Claude Code plugin docs expose both native OAuth entry points" {
-    python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/docs/README_zh.md" <<'PY'
+    python3 - "$REPO_ROOT/README.md" "$REPO_ROOT/docs/README_zh.md" "$REPO_ROOT/docs/README_ja.md" <<'PY'
 import sys
 
 for path in sys.argv[1:]:
